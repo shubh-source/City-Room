@@ -14,6 +14,10 @@ const AddRoom = () => {
     amenities: []
   });
 
+  // Autocomplete states
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const amenitiesList = ['WiFi', 'AC', 'Attached Bath', 'Furnished', 'Parking', 'Balcony'];
 
   const handleNext = () => setStep(s => Math.min(s + 1, 3));
@@ -26,6 +30,32 @@ const AddRoom = () => {
         ? prev.amenities.filter(a => a !== amenity)
         : [...prev.amenities, amenity]
     }));
+  };
+
+  const handleCitySearch = async (e) => {
+    const query = e.target.value;
+    setFormData({...formData, city: query});
+    
+    if (query.length > 2) {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(query)}&countrycodes=in&format=json&limit=5`);
+        const data = await res.json();
+        setSearchResults(data);
+      } catch (err) {
+        console.error("Autocomplete failed", err);
+      } finally {
+        setIsSearching(false);
+      }
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+  const handleSelectCity = (cityData) => {
+    const cleanName = cityData.display_name.split(',')[0].trim(); // Just take the city name for listings
+    setFormData({...formData, city: cleanName});
+    setSearchResults([]);
   };
 
   const navigate = useNavigate();
@@ -88,15 +118,40 @@ const AddRoom = () => {
           {step === 1 && (
             <div className="animate-fade-in">
               <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>Location Details</h2>
-              <div className="input-group">
+              <div className="input-group" style={{ position: 'relative' }}>
                 <label className="input-label">City</label>
-                <select className="input-field" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required>
-                  <option value="">Select City</option>
-                  <option value="Jaipur">Jaipur</option>
-                  <option value="Udaipur">Udaipur</option>
-                  <option value="Kota">Kota</option>
-                  <option value="Bikaner">Bikaner</option>
-                </select>
+                <div style={{ position: 'relative' }}>
+                  <MapPin size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    style={{ paddingLeft: '2.5rem' }}
+                    value={formData.city}
+                    onChange={handleCitySearch}
+                    placeholder="Type to search city..."
+                    autoComplete="off"
+                    required
+                  />
+                </div>
+                {/* Autocomplete Dropdown */}
+                {searchResults.length > 0 && (
+                  <ul className="autocomplete-dropdown">
+                    {searchResults.map((result, idx) => (
+                      <li 
+                        key={idx} 
+                        className="autocomplete-item"
+                        onClick={() => handleSelectCity(result)}
+                      >
+                        {result.display_name.split(',').slice(0, 3).join(',')}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {isSearching && searchResults.length === 0 && (
+                  <ul className="autocomplete-dropdown">
+                    <li className="autocomplete-item" style={{ color: 'var(--text-muted)' }}>Searching...</li>
+                  </ul>
+                )}
               </div>
               <div className="input-group">
                 <label className="input-label">Complete Address</label>
