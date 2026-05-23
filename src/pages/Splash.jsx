@@ -15,7 +15,7 @@ const Splash = () => {
           display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem',
           boxShadow: '0 8px 32px var(--primary-glow)'
         }}>
-          <img src="/logo.png" alt="CityRoom Logo" style={{ width: '50px', height: '50px', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="CityRoom Logo" style={{ width: '50px', height: '50px', objectFit: 'contain', borderRadius: '12px' }} />
         </div>
         <h1 className="font-bold mb-2" style={{ 
           fontSize: '3rem', 

@@ -14,7 +14,7 @@ const RenterLayout = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--bg-color)' }}>
       {/* Top Navigation Bar */}
-      <nav style={{ 
+      <nav className="top-nav-mobile" style={{ 
         backgroundColor: 'var(--surface-color)', 
         borderBottom: '1px solid var(--border-color)',
         padding: '1rem 2rem',
@@ -26,9 +26,9 @@ const RenterLayout = () => {
         zIndex: 10
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <img src="/logo.png" alt="CityRoom Logo" style={{ height: '32px', margin: 0, objectFit: 'contain' }} />
+          <img src="/logo.png" alt="CityRoom Logo" style={{ height: '32px', margin: 0, objectFit: 'contain', borderRadius: '8px' }} />
           
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="desktop-only" style={{ gap: '1rem' }}>
             {navItems.map(item => {
               const isActive = location.pathname === item.path || (item.path !== '/renter' && location.pathname.startsWith(item.path));
               return (
@@ -76,7 +76,7 @@ const RenterLayout = () => {
       </nav>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
+      <main className="layout-container" style={{ flex: 1, padding: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1 }}>
           <Outlet />
         </div>
@@ -87,6 +87,23 @@ const RenterLayout = () => {
           <span style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--primary-color)', letterSpacing: '0.5px' }}>UDVerse</span>
         </footer>
       </main>
+
+      {/* Bottom Navigation (Mobile) */}
+      <nav className="mobile-only mobile-bottom-nav">
+        {navItems.map(item => {
+          const isActive = location.pathname === item.path || (item.path !== '/renter' && location.pathname.startsWith(item.path));
+          return (
+            <Link 
+              key={item.path} 
+              to={item.path}
+              className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 };

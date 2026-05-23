@@ -15,17 +15,16 @@ const OwnerLayout = () => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-color)' }}>
-      {/* Sidebar Navigation */}
-      <nav style={{ 
+      {/* Sidebar Navigation (Desktop) */}
+      <nav className="desktop-only" style={{ 
         width: '250px', 
         backgroundColor: 'var(--surface-color)', 
         borderRight: '1px solid var(--border-color)',
-        display: 'flex',
         flexDirection: 'column',
         padding: '1.5rem'
       }}>
         <div style={{ marginBottom: '2rem' }}>
-          <img src="/logo.png" alt="CityRoom Logo" style={{ height: '40px', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="CityRoom Logo" style={{ height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
           <span style={{ fontSize: '0.8rem', color: 'var(--secondary-color)', fontWeight: '600' }}>Owner Portal</span>
         </div>
 
@@ -77,9 +76,26 @@ const OwnerLayout = () => {
       </nav>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
+      <main className="layout-container" style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
         <Outlet />
       </main>
+
+      {/* Bottom Navigation (Mobile) */}
+      <nav className="mobile-only mobile-bottom-nav">
+        {navItems.map(item => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link 
+              key={item.path} 
+              to={item.path}
+              className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+            >
+              {item.icon}
+              <span>{item.label.split(' ')[0]}</span>
+            </Link>
+          )
+        })}
+      </nav>
     </div>
   );
 };

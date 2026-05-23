@@ -94,7 +94,7 @@ const Profile = () => {
             </div>
           </div>
 
-          {isOwner && (
+          {isOwner ? (
             <>
               <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
               <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Payout Details</h3>
@@ -115,6 +115,55 @@ const Profile = () => {
                     disabled={!isEditing}
                   />
                 </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>KYC Verification</h3>
+                <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>Pending Verification</span>
+              </div>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+                Upload your Aadhar or PAN card to complete your KYC. This builds trust with owners and enables instant booking.
+              </p>
+              
+              <div className="input-group">
+                <label className="input-label">Document Type</label>
+                <select 
+                  className="input-field" 
+                  disabled={!isEditing}
+                  defaultValue="aadhar"
+                >
+                  <option value="aadhar">Aadhar Card</option>
+                  <option value="pan">PAN Card</option>
+                  <option value="passport">Passport</option>
+                </select>
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">Document Number</label>
+                <div style={{ position: 'relative' }}>
+                  <Shield size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    style={{ paddingLeft: '2.5rem' }}
+                    placeholder="Enter ID Number"
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">Upload Document Photo</label>
+                <input 
+                  type="file" 
+                  className="input-field" 
+                  disabled={!isEditing}
+                  accept="image/*,.pdf"
+                  style={{ padding: '0.6rem 1rem' }}
+                />
               </div>
             </>
           )}
