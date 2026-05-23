@@ -9,6 +9,11 @@ const Profile = () => {
   
   const { user, userLocation, setUserLocation } = useContext(AppContext);
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Autocomplete states
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  
   const [profileData, setProfileData] = useState({
     name: 'Loading...',
     email: '...',
@@ -28,6 +33,33 @@ const Profile = () => {
       });
     }
   }, [user, userLocation]);
+
+  const handleLocationChange = async (e) => {
+    const query = e.target.value;
+    setProfileData({...profileData, location: query});
+    
+    if (query.length > 2) {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(query)}&countrycodes=in&format=json&limit=5`);
+        const data = await res.json();
+        setSearchResults(data);
+      } catch (err) {
+        console.error("Autocomplete failed", err);
+      } finally {
+        setIsSearching(false);
+      }
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+  const handleSelectCity = (cityData) => {
+    // Construct clean city name (e.g. Kanpur, Uttar Pradesh)
+    const cleanName = cityData.display_name.split(',').slice(0, 2).join(', ');
+    setProfileData({...profileData, location: cleanName});
+    setSearchResults([]);
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -93,7 +125,7 @@ const Profile = () => {
             </div>
           </div>
 
-          <div className="input-group">
+          <div className="input-group" style={{ position: 'relative' }}>
             <label className="input-label">Location (City, State)</label>
             <div style={{ position: 'relative' }}>
               <MapPin size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -102,10 +134,31 @@ const Profile = () => {
                 className="input-field" 
                 style={{ paddingLeft: '2.5rem' }}
                 value={profileData.location}
-                onChange={e => setProfileData({...profileData, location: e.target.value})}
+                onChange={handleLocationChange}
                 disabled={!isEditing}
+                placeholder="Type your city..."
+                autoComplete="off"
               />
             </div>
+            {/* Autocomplete Dropdown */}
+            {isEditing && searchResults.length > 0 && (
+              <ul className="autocomplete-dropdown">
+                {searchResults.map((result, idx) => (
+                  <li 
+                    key={idx} 
+                    className="autocomplete-item"
+                    onClick={() => handleSelectCity(result)}
+                  >
+                    {result.display_name.split(',').slice(0, 3).join(',')}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {isEditing && isSearching && searchResults.length === 0 && (
+              <ul className="autocomplete-dropdown">
+                <li className="autocomplete-item" style={{ color: 'var(--text-muted)' }}>Searching...</li>
+              </ul>
+            )}
           </div>
 
           {isOwner ? (
