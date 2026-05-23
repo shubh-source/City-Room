@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Users, IndianRupee, TrendingUp } from 'lucide-react';
+import { Home, Users, IndianRupee, TrendingUp, Bell } from 'lucide-react';
 import { api } from '../../lib/api';
 
 const DashboardCard = ({ title, value, icon, color, trend }) => (
@@ -23,20 +23,28 @@ const DashboardCard = ({ title, value, icon, color, trend }) => (
 
 const OwnerDashboard = () => {
   const [rooms, setRooms] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRooms = async () => {
+    const fetchData = async () => {
       try {
-        const data = await api.get('/owner/rooms');
-        setRooms(data);
+        const token = localStorage.getItem('cityroom_token');
+        const [roomsData, notifRes] = await Promise.all([
+          api.get('/owner/rooms'),
+          fetch('http://localhost:5000/api/notifications', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        setRooms(roomsData);
+        if (notifRes.ok) {
+          setNotifications(await notifRes.json());
+        }
       } catch (err) {
-        console.error('Failed to fetch owner rooms', err);
+        console.error('Failed to fetch dashboard data', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchRooms();
+    fetchData();
   }, []);
 
   const totalRooms = rooms.length;
@@ -84,6 +92,35 @@ const OwnerDashboard = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+        {/* Notifications Panel */}
+        <div className="card" style={{ background: 'linear-gradient(to right, rgba(239, 68, 68, 0.05), transparent)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Bell size={20} color="var(--danger-color)" />
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Live Notifications</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {notifications.length === 0 ? (
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>No new notifications.</p>
+            ) : (
+              notifications.slice(0, 5).map(notif => (
+                <div key={notif.id} style={{ 
+                  padding: '1rem', 
+                  backgroundColor: 'var(--bg-color)', 
+                  border: '1px solid var(--border-color)', 
+                  borderLeft: '4px solid var(--danger-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.9rem'
+                }}>
+                  {notif.message}
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                    {new Date(notif.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
         <div className="card">
           <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Recent Enquiries</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

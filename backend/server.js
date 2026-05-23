@@ -243,9 +243,75 @@ app.get('/api/owner/rooms', authenticateToken, async (req, res) => {
   }
 });
 
+// --- Shortlists & Notifications ---
+
+// 5. Shortlist a Room (Toggle)
+app.post('/api/shortlist/:roomId', authenticateToken, async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const userId = req.user.id;
+    
+    // Check if room exists
+    const room = await prisma.room.findUnique({ where: { id: roomId }, include: { owner: true } });
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+
+    // Check if already shortlisted
+    const existing = await prisma.shortlist.findUnique({
+      where: { renterId_roomId: { renterId: userId, roomId: roomId } }
+    });
+
+    if (existing) {
+      // Remove from shortlist
+      await prisma.shortlist.delete({ where: { id: existing.id } });
+      res.json({ message: 'Removed from shortlists', isShortlisted: false });
+    } else {
+      // Add to shortlist
+      await prisma.shortlist.create({ data: { renterId: userId, roomId: roomId } });
+      
+      // Notify Owner
+      const renter = await prisma.user.findUnique({ where: { id: userId } });
+      await prisma.notification.create({
+        data: {
+          userId: room.ownerId,
+          message: `❤️ ${renter.name || 'A user'} has shortlisted your ${room.type} in ${room.city}!`
+        }
+      });
+      res.json({ message: 'Added to shortlists', isShortlisted: true });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to toggle shortlist' });
+  }
+});
+
+// 6. Get Renter's Shortlists
+app.get('/api/shortlists', authenticateToken, async (req, res) => {
+  try {
+    const shortlists = await prisma.shortlist.findMany({
+      where: { renterId: req.user.id },
+      include: { room: { include: { owner: { select: { name: true, phone: true } } } } }
+    });
+    res.json(shortlists);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch shortlists' });
+  }
+});
+
+// 7. Get User Notifications
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  try {
+    const notifications = await prisma.notification.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+});
+
 // Start Server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 CityRoom Backend running on http://localhost:${PORT}`);
 });
-
-

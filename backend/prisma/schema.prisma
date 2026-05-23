@@ -21,9 +21,11 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   
-  rooms        Room[]    @relation("OwnerRooms")
-  bookings     Booking[] @relation("RenterBookings")
-  enquiries    Enquiry[] @relation("RenterEnquiries")
+  rooms        Room[]        @relation("OwnerRooms")
+  bookings     Booking[]     @relation("RenterBookings")
+  enquiries    Enquiry[]     @relation("RenterEnquiries")
+  shortlists   Shortlist[]   @relation("RenterShortlists")
+  notifications Notification[] @relation("UserNotifications")
 }
 
 model Room {
@@ -48,6 +50,7 @@ model Room {
 
   bookings     Booking[]
   enquiries    Enquiry[]
+  shortlists   Shortlist[]
 }
 
 model Booking {
@@ -79,4 +82,28 @@ model Enquiry {
   
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model Shortlist {
+  id           String    @id @default(uuid())
+  renterId     String
+  roomId       String
+  
+  renter       User      @relation("RenterShortlists", fields: [renterId], references: [id])
+  room         Room      @relation(fields: [roomId], references: [id])
+  
+  createdAt    DateTime  @default(now())
+
+  @@unique([renterId, roomId]) // A user can only shortlist a room once
+}
+
+model Notification {
+  id           String    @id @default(uuid())
+  userId       String    // The owner receiving the notification
+  user         User      @relation("UserNotifications", fields: [userId], references: [id])
+  
+  message      String
+  isRead       Boolean   @default(false)
+  
+  createdAt    DateTime  @default(now())
 }

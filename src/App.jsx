@@ -21,6 +21,7 @@ import RenterLayout from './components/RenterLayout';
 import RenterHome from './pages/renter/Home';
 import RoomDetails from './pages/renter/RoomDetails';
 import RenterPayments from './pages/renter/RenterPayments';
+import Saved from './pages/renter/Saved';
 
 import Profile from './pages/shared/Profile';
 
@@ -55,6 +56,7 @@ function App() {
               <Route index element={<RenterHome />} />
               <Route path="room/:id" element={<RoomDetails />} />
               <Route path="payments" element={<RenterPayments />} />
+              <Route path="saved" element={<Saved />} />
               <Route path="profile" element={<Profile />} />
             </Route>
             
