@@ -62,16 +62,40 @@ const AddRoom = () => {
 
   const submitForm = async (e) => {
     e.preventDefault();
+    
+    // 1. Strict Validation Check
+    const userStr = localStorage.getItem('cityroom_user');
+    if (!userStr) return navigate('/login');
+    const user = JSON.parse(userStr);
+    
+    if (!user.name || !user.email || !user.location || !user.upiId || !user.isVerified) {
+      alert("⚠️ Action Required: You must complete your Profile details, Payout UPI ID, and DigiLocker KYC Verification before listing a room.");
+      return navigate('/owner/profile');
+    }
+    
+    if (!user.subscriptionEnd || new Date(user.subscriptionEnd) < new Date()) {
+      alert("⚠️ Subscription Expired: Please renew your CityRoom Pro subscription to list a room.");
+      return navigate('/owner/profile');
+    }
+
     try {
-      await api.post('/rooms', {
-        title: `${formData.type} in ${formData.city}`,
-        address: formData.address,
-        city: formData.city,
-        rent: formData.rent,
-        advance: formData.advance,
-        type: formData.type,
-        amenities: formData.amenities,
-        photos: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=600&auto=format&fit=crop'] // Dummy photo for now
+      const token = localStorage.getItem('cityroom_token');
+      await fetch('http://localhost:5000/api/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: `${formData.type} in ${formData.city}`,
+          address: formData.address,
+          city: formData.city,
+          rent: formData.rent,
+          advance: formData.advance,
+          type: formData.type,
+          amenities: formData.amenities,
+          photos: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=600&auto=format&fit=crop'] // Dummy photo for now
+        })
       });
       alert('Room listed successfully!');
       navigate('/owner');

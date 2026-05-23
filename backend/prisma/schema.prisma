@@ -17,6 +17,7 @@ model User {
   location     String?
   upiId        String?   // For owner payouts
   isVerified   Boolean   @default(false)
+  subscriptionEnd DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   

@@ -3,6 +3,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
 dotenv.config();
 
@@ -12,6 +14,12 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// --- Razorpay Setup ---
+const razorpay = new Razorpay({
+  key_id: 'rzp_test_SZlNsaYYbenJQA',
+  key_secret: 'r8l9u3RlbXAvciop0eexonVi',
+});
 
 // --- Authentication Middleware ---
 const authenticateToken = (req, res, next) => {
@@ -132,14 +140,73 @@ app.put('/api/profile/kyc', authenticateToken, async (req, res) => {
   }
 });
 
+// --- Payment & Subscription Routes ---
+
+// 1. Create Order
+app.post('/api/payment/create-order', authenticateToken, async (req, res) => {
+  const options = {
+    amount: 499 * 100, // amount in smallest currency unit (paise)
+    currency: "INR",
+    receipt: `receipt_order_${req.user.id}_${Date.now()}`
+  };
+  
+  try {
+    const order = await razorpay.orders.create(options);
+    res.json(order);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create order' });
+  }
+});
+
+// 2. Verify Payment
+app.post('/api/payment/verify', authenticateToken, async (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+  
+  const sign = razorpay_order_id + "|" + razorpay_payment_id;
+  const expectedSign = crypto
+    .createHmac("sha256", "r8l9u3RlbXAvciop0eexonVi")
+    .update(sign.toString())
+    .digest("hex");
+
+  if (razorpay_signature === expectedSign) {
+    // Payment verified, update subscriptionEnd date
+    try {
+      const now = new Date();
+      // Add 30 days
+      const newExpiry = new Date(now.setDate(now.getDate() + 30));
+      
+      const updatedUser = await prisma.user.update({
+        where: { id: req.user.id },
+        data: { subscriptionEnd: newExpiry }
+      });
+      res.json({ message: "Payment verified successfully", user: updatedUser });
+    } catch (err) {
+      res.status(500).json({ error: 'Database update failed after payment' });
+    }
+  } else {
+    res.status(400).json({ error: "Invalid payment signature!" });
+  }
+});
+
+// --- Room Routes ---
+
 // 4. Rooms: Get all available rooms
 app.get('/api/rooms', async (req, res) => {
   try {
     const rooms = await prisma.room.findMany({
       where: { status: 'vacant' },
-      include: { owner: { select: { name: true, phone: true } } }
+      include: { owner: { select: { name: true, phone: true, subscriptionEnd: true } } }
     });
-    res.json(rooms);
+    
+    // Filter out rooms where owner's subscription is expired
+    const activeRooms = rooms.filter(r => {
+      if (!r.owner.subscriptionEnd) return false;
+      const expiry = new Date(r.owner.subscriptionEnd);
+      return expiry > new Date();
+    });
+    
+    res.json(activeRooms);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch rooms' });
   }

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { User, Mail, MapPin, Save, Shield, Wallet, CheckCircle, X } from 'lucide-react';
+import { User, Mail, MapPin, Save, Shield, Wallet, CheckCircle, X, CreditCard } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 import { api } from '../../lib/api';
@@ -97,6 +97,68 @@ const Profile = () => {
       window.location.reload(); // Refresh to update AppContext state globally
     } catch (err) {
       alert("Invalid OTP");
+    }
+  };
+
+  const handlePayment = async () => {
+    try {
+      const token = localStorage.getItem('cityroom_token');
+      
+      // 1. Create order on backend
+      const orderRes = await fetch('http://localhost:5000/api/payment/create-order', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const orderData = await orderRes.json();
+      
+      if (!orderData.id) throw new Error("Failed to create order");
+
+      // 2. Initialize Razorpay options
+      const options = {
+        key: 'rzp_test_SZlNsaYYbenJQA', // Public Key
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "CityRoom Pro",
+        description: "Monthly Unlimited Listings Subscription",
+        order_id: orderData.id,
+        handler: async function (response) {
+          // 3. Verify Payment
+          const verifyRes = await fetch('http://localhost:5000/api/payment/verify', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(response)
+          });
+          
+          if (verifyRes.ok) {
+            const data = await verifyRes.json();
+            localStorage.setItem('cityroom_user', JSON.stringify(data.user));
+            alert("Payment successful! Subscription Activated.");
+            window.location.reload();
+          } else {
+            alert("Payment verification failed!");
+          }
+        },
+        prefill: {
+          name: profileData.name,
+          email: profileData.email,
+          contact: profileData.phone
+        },
+        theme: {
+          color: "#4F46E5"
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response){
+        alert("Payment failed: " + response.error.description);
+      });
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong initializing payment");
     }
   };
 
@@ -216,35 +278,72 @@ const Profile = () => {
                 </div>
               </div>
             </>
-          ) : (
+          )}
+
+          {/* KYC Section for both Owner & Renter */}
+          <>
+            <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>KYC Verification</h3>
+              {user?.isVerified ? (
+                <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--success-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckCircle size={14} /> Verified
+                </span>
+              ) : (
+                <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                  Pending
+                </span>
+              )}
+            </div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              Verify your identity instantly via DigiLocker. This builds trust with owners and enables instant booking.
+            </p>
+            
+            {!user?.isVerified && (
+              <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/DigiLocker_Logo.png" alt="DigiLocker" style={{ height: '30px', marginBottom: '1rem' }} />
+                <h4 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Paperless Offline e-KYC</h4>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Securely fetch your details from UIDAI via DigiLocker</p>
+                <button type="button" onClick={() => setIsKycOpen(true)} className="btn btn-primary" style={{ width: '100%', backgroundColor: '#0055A5' }}>
+                  Verify with DigiLocker
+                </button>
+              </div>
+            )}
+          </>
+
+          {/* Subscription Section for Owners only */}
+          {isOwner && (
             <>
               <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>KYC Verification</h3>
-                {user?.isVerified ? (
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Subscription Plan</h3>
+                {user?.subscriptionEnd && new Date(user.subscriptionEnd) > new Date() ? (
                   <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--success-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <CheckCircle size={14} /> Verified
+                    <CheckCircle size={14} /> Active
                   </span>
                 ) : (
-                  <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                    Pending
+                  <span style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                    Expired
                   </span>
                 )}
               </div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                Verify your identity instantly via DigiLocker. This builds trust with owners and enables instant booking.
-              </p>
               
-              {!user?.isVerified && (
-                <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', textAlign: 'center' }}>
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/DigiLocker_Logo.png" alt="DigiLocker" style={{ height: '30px', marginBottom: '1rem' }} />
-                  <h4 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Paperless Offline e-KYC</h4>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Securely fetch your details from UIDAI via DigiLocker</p>
-                  <button type="button" onClick={() => setIsKycOpen(true)} className="btn btn-primary" style={{ width: '100%', backgroundColor: '#0055A5' }}>
-                    Verify with DigiLocker
+              <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(139, 92, 246, 0.1))', borderRadius: 'var(--radius-md)', border: '1px solid var(--primary-color)' }}>
+                <h4 style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>CityRoom Pro</h4>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                  List unlimited properties and get exclusive Renter leads directly to your WhatsApp.
+                </p>
+                
+                {user?.subscriptionEnd && new Date(user.subscriptionEnd) > new Date() ? (
+                  <p style={{ fontWeight: 'bold', color: 'var(--success-color)' }}>
+                    Expires on: {new Date(user.subscriptionEnd).toLocaleDateString()}
+                  </p>
+                ) : (
+                  <button type="button" onClick={handlePayment} className="btn btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                    <CreditCard size={18} /> Buy / Renew for ₹499
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
 
