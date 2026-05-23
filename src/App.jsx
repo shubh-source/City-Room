@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
+import { AppContextProvider } from './context/AppContext';
+
 import Splash from './pages/Splash';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
@@ -27,45 +29,48 @@ import AdminDashboard from './pages/admin/Dashboard';
 
 function App() {
   return (
-    <Router>
-      <div className="app-container">
-        <Routes>
-          {/* Public / Legal Routes */}
-          <Route path="/" element={<Splash />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/support" element={<Support />} />
-          
-          {/* Owner Routes */}
-          <Route path="/owner" element={<OwnerLayout />}>
-            <Route index element={<OwnerDashboard />} />
-            <Route path="add-room" element={<AddRoom />} />
-            <Route path="rooms" element={<ManageRooms />} />
-            <Route path="enquiries" element={<OwnerEnquiries />} />
-            <Route path="profile" element={<Profile />} />
-          </Route>
-          
-          {/* Renter Routes */}
-          <Route path="/renter" element={<RenterLayout />}>
-            <Route index element={<RenterHome />} />
-            <Route path="room/:id" element={<RoomDetails />} />
-            <Route path="payments" element={<RenterPayments />} />
-            <Route path="profile" element={<Profile />} />
-          </Route>
-          
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-          </Route>
+    <AppContextProvider>
+      <Router>
+        <div className="app-container">
+          <Routes>
+            {/* Public / Legal Routes */}
+            <Route path="/" element={<Splash />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/support" element={<Support />} />
+            
+            {/* Owner Routes */}
+            <Route path="/owner" element={<OwnerLayout />}>
+              <Route index element={<OwnerDashboard />} />
+              <Route path="add-room" element={<AddRoom />} />
+              <Route path="rooms" element={<ManageRooms />} />
+              <Route path="enquiries" element={<OwnerEnquiries />} />
+              <Route path="profile" element={<Profile />} />
+            </Route>
+            
+            {/* Renter Routes */}
+            <Route path="/renter" element={<RenterLayout />}>
+              <Route index element={<RenterHome />} />
+              <Route path="room/:id" element={<RoomDetails />} />
+              <Route path="payments" element={<RenterPayments />} />
+              <Route path="profile" element={<Profile />} />
+            </Route>
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+            </Route>
 
-          {/* Catch all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </Router>
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Router>
+    </AppContextProvider>
   );
 }
 
 export default App;
+

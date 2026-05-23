@@ -1,24 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { User, Mail, MapPin, Save, Shield, Wallet } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { AppContext } from '../../context/AppContext';
 
 const Profile = () => {
-  const location = useLocation();
-  const isOwner = location.pathname.includes('/owner');
+  const locationHook = useLocation();
+  const isOwner = locationHook.pathname.includes('/owner');
   
+  const { user, userLocation, setUserLocation } = useContext(AppContext);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: 'Shubh Kumar',
-    email: 'shubh@example.com',
-    phone: '+91 9876543210',
-    location: 'Jaipur, Rajasthan',
-    upiId: 'shubh@okhdfcbank',
+    name: 'Loading...',
+    email: '...',
+    phone: '...',
+    location: userLocation,
+    upiId: '',
   });
+
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: user.name || 'User',
+        email: user.email || user.phone || 'No contact info',
+        phone: user.phone || '',
+        location: userLocation,
+        upiId: user.upiId || 'not-set@upi',
+      });
+    }
+  }, [user, userLocation]);
 
   const handleSave = (e) => {
     e.preventDefault();
     setIsEditing(false);
-    // Here we would normally save to backend
+    setUserLocation(profileData.location);
     alert('Profile updated successfully!');
   };
 

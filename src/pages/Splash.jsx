@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Key } from 'lucide-react';
 
 const Splash = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('cityroom_user');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
+        if (user.role === 'owner') navigate('/owner');
+        else navigate('/renter');
+      } catch (e) {
+        console.error("Invalid user session");
+      }
+    }
+  }, [navigate]);
 
   return (
     <div className="flex-center p-8 animate-fade-in" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>

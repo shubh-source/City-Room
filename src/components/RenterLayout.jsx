@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Search, MapPin, CreditCard, User, LogOut, MessageSquare } from 'lucide-react';
+import { AppContext } from '../context/AppContext';
 
 const RenterLayout = () => {
   const location = useLocation();
@@ -58,7 +59,9 @@ const RenterLayout = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
             <MapPin size={18} />
-            <span style={{ fontWeight: '500', fontSize: '0.9rem' }}>Jaipur</span>
+            <span style={{ fontWeight: '500', fontSize: '0.9rem', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {useContext(AppContext).userLocation.split(',')[0]}
+            </span>
           </div>
           
           <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-color)' }} />

@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, IndianRupee, Filter, Star, X } from 'lucide-react';
 import { api } from '../../lib/api';
+import { AppContext } from '../../context/AppContext';
 
 const RenterHome = () => {
+  const { userLocation } = useContext(AppContext);
+  const currentCity = userLocation.split(',')[0].trim();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [rooms, setRooms] = useState([]);
@@ -28,10 +31,14 @@ const RenterHome = () => {
   }, []);
 
   const filteredRooms = rooms.filter(r => {
+    // Location Filter
+    const matchesLocation = r.address.toLowerCase().includes(currentCity.toLowerCase()) || currentCity === 'Fetching Location...' || currentCity === 'Select Location';
+    
+    // Search & Other Filters
     const matchesSearch = r.title.toLowerCase().includes(searchTerm.toLowerCase()) || r.address.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRent = r.rent <= maxRent;
     const matchesType = roomType === 'All' || r.type === roomType;
-    return matchesSearch && matchesRent && matchesType;
+    return matchesLocation && matchesSearch && matchesRent && matchesType;
   });
 
   const activeFilterCount = (maxRent < 15000 ? 1 : 0) + (roomType !== 'All' ? 1 : 0);
@@ -118,7 +125,7 @@ const RenterHome = () => {
         )}
       </div>
 
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>Available in Jaipur</h2>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>Available in {currentCity}</h2>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
         {filteredRooms.length === 0 ? (
