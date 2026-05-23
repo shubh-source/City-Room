@@ -70,6 +70,10 @@ const OwnerLayout = () => {
           <LogOut size={20} />
           Logout
         </Link>
+        <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>from</span>
+          <span style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--primary-color)', letterSpacing: '0.5px' }}>UDVerse</span>
+        </div>
       </nav>
 
       {/* Main Content Area */}

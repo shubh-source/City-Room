@@ -67,7 +67,11 @@ const Splash = () => {
           <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: '0 0.5rem', textDecoration: 'underline' }}>Privacy Policy</button> | 
           <button onClick={() => navigate('/support')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: '0 0.5rem', textDecoration: 'underline' }}>Help & Support</button>
         </div>
-        <p>&copy; 2026 CityRoom. All rights reserved.</p>
+        <p style={{ marginTop: '0.5rem' }}>&copy; 2026 CityRoom. All rights reserved.</p>
+        <div style={{ marginTop: '0.2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>from</span>
+          <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--primary-color)', letterSpacing: '0.5px' }}>UDVerse</span>
+        </div>
       </footer>
     </div>
   );

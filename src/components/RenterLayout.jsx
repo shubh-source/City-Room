@@ -76,8 +76,16 @@ const RenterLayout = () => {
       </nav>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
-        <Outlet />
+      <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1 }}>
+          <Outlet />
+        </div>
+        
+        {/* Footer Trademark */}
+        <footer style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>from</span>
+          <span style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--primary-color)', letterSpacing: '0.5px' }}>UDVerse</span>
+        </footer>
       </main>
     </div>
   );
