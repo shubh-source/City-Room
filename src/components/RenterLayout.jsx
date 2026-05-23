@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Search, MapPin, CreditCard, User, LogOut } from 'lucide-react';
+import { Search, MapPin, CreditCard, User, LogOut, MessageSquare } from 'lucide-react';
 
 const RenterLayout = () => {
   const location = useLocation();
@@ -8,6 +8,7 @@ const RenterLayout = () => {
   const navItems = [
     { path: '/renter', icon: <Search size={20} />, label: 'Find Rooms' },
     { path: '/renter/payments', icon: <CreditCard size={20} />, label: 'My Payments' },
+    { path: '/support', icon: <MessageSquare size={20} />, label: 'Support' },
   ];
 
   return (

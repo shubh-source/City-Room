@@ -60,6 +60,15 @@ const Splash = () => {
           </button>
         </div>
       </div>
+
+      <footer style={{ marginTop: 'auto', paddingTop: '3rem', width: '100%', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div>
+          <button onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: '0 0.5rem', textDecoration: 'underline' }}>Terms of Service</button> | 
+          <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: '0 0.5rem', textDecoration: 'underline' }}>Privacy Policy</button> | 
+          <button onClick={() => navigate('/support')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: '0 0.5rem', textDecoration: 'underline' }}>Help & Support</button>
+        </div>
+        <p>&copy; 2026 CityRoom. All rights reserved.</p>
+      </footer>
     </div>
   );
 };

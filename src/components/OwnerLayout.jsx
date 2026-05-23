@@ -9,6 +9,7 @@ const OwnerLayout = () => {
     { path: '/owner/rooms', icon: <Building size={20} />, label: 'My Rooms' },
     { path: '/owner/add-room', icon: <PlusCircle size={20} />, label: 'Add Room' },
     { path: '/owner/enquiries', icon: <MessageSquare size={20} />, label: 'Enquiries' },
+    { path: '/support', icon: <MessageSquare size={20} />, label: 'Help & Support' },
     { path: '/owner/profile', icon: <User size={20} />, label: 'Profile' },
   ];
 

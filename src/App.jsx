@@ -9,7 +9,11 @@ import OwnerDashboard from './pages/owner/Dashboard';
 
 import AddRoom from './pages/owner/AddRoom';
 import ManageRooms from './pages/owner/ManageRooms';
-import OwnerEnquiries from './pages/owner/OwnerEnquiries';
+import OwnerEnquiries from './pages/owner/Enquiries';
+
+import Terms from './pages/legal/Terms';
+import Privacy from './pages/legal/Privacy';
+import Support from './pages/legal/Support';
 
 import RenterLayout from './components/RenterLayout';
 import RenterHome from './pages/renter/Home';
@@ -26,9 +30,13 @@ function App() {
     <Router>
       <div className="app-container">
         <Routes>
+          {/* Public / Legal Routes */}
           <Route path="/" element={<Splash />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/support" element={<Support />} />
           
           {/* Owner Routes */}
           <Route path="/owner" element={<OwnerLayout />}>
