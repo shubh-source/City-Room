@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  phone        String    @unique
+  role         String    @default("renter") // "renter" or "owner"
+  name         String?
+  email        String?   @unique
+  location     String?
+  upiId        String?   // For owner payouts
+  isVerified   Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  rooms        Room[]    @relation("OwnerRooms")
+  bookings     Booking[] @relation("RenterBookings")
+  enquiries    Enquiry[] @relation("RenterEnquiries")
+}
+
+model Room {
+  id           String    @id @default(uuid())
+  ownerId      String
+  owner        User      @relation("OwnerRooms", fields: [ownerId], references: [id])
+  
+  title        String
+  address      String
+  city         String
+  rent         Float
+  advance      Float
+  type         String    // "1 BHK", "Single Room", etc.
+  status       String    @default("vacant") // "vacant", "occupied"
+  
+  photos       String[]
+  amenities    String[]
+  rating       Float     @default(0.0)
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  bookings     Booking[]
+  enquiries    Enquiry[]
+}
+
+model Booking {
+  id           String    @id @default(uuid())
+  roomId       String
+  renterId     String
+  
+  room         Room      @relation(fields: [roomId], references: [id])
+  renter       User      @relation("RenterBookings", fields: [renterId], references: [id])
+  
+  amountPaid   Float
+  platformFee  Float
+  status       String    @default("escrow") // "escrow", "completed", "refunded"
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Enquiry {
+  id           String    @id @default(uuid())
+  roomId       String
+  renterId     String
+  
+  room         Room      @relation(fields: [roomId], references: [id])
+  renter       User      @relation("RenterEnquiries", fields: [renterId], references: [id])
+  
+  message      String?
+  status       String    @default("pending") // "pending", "contacted", "closed"
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}

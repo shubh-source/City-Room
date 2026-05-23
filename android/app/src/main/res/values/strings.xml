@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CityRoom</string>
+    <string name="title_activity_main">CityRoom</string>
+    <string name="package_name">com.cityroom.app</string>
+    <string name="custom_url_scheme">com.cityroom.app</string>
+</resources>
