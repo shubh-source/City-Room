@@ -25,7 +25,7 @@ const RenterLayout = () => {
         zIndex: 10
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <h2 style={{ color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1.5rem', margin: 0 }}>CityRoom</h2>
+          <img src="/logo.png" alt="CityRoom Logo" style={{ height: '32px', margin: 0, objectFit: 'contain' }} />
           
           <div style={{ display: 'flex', gap: '1rem' }}>
             {navItems.map(item => {

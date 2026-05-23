@@ -24,7 +24,7 @@ const OwnerLayout = () => {
         padding: '1.5rem'
       }}>
         <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1.5rem' }}>CityRoom</h2>
+          <img src="/logo.png" alt="CityRoom Logo" style={{ height: '40px', objectFit: 'contain' }} />
           <span style={{ fontSize: '0.8rem', color: 'var(--secondary-color)', fontWeight: '600' }}>Owner Portal</span>
         </div>
 
