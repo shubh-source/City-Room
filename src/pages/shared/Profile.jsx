@@ -1,7 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { User, Mail, MapPin, Save, Shield, Wallet } from 'lucide-react';
+import { User, Mail, MapPin, Save, Shield, Wallet, CheckCircle, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
+import { api } from '../../lib/api';
 
 const Profile = () => {
   const locationHook = useLocation();
@@ -13,6 +14,12 @@ const Profile = () => {
   // Autocomplete states
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // KYC Modal States
+  const [isKycOpen, setIsKycOpen] = useState(false);
+  const [kycStep, setKycStep] = useState(1);
+  const [aadhaar, setAadhaar] = useState('');
+  const [otp, setOtp] = useState('');
   
   const [profileData, setProfileData] = useState({
     name: 'Loading...',
@@ -68,8 +75,33 @@ const Profile = () => {
     alert('Profile updated successfully!');
   };
 
+  const handleVerifyKyc = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('cityroom_token');
+      const res = await fetch('http://localhost:5000/api/profile/kyc', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ otp })
+      });
+      
+      if (!res.ok) throw new Error("Verification failed");
+      
+      const updatedUser = await res.json();
+      localStorage.setItem('cityroom_user', JSON.stringify(updatedUser));
+      alert("DigiLocker KYC Verified Successfully!");
+      setIsKycOpen(false);
+      window.location.reload(); // Refresh to update AppContext state globally
+    } catch (err) {
+      alert("Invalid OTP");
+    }
+  };
+
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
+    <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto', position: 'relative' }}>
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>My Profile</h1>
         <p style={{ color: 'var(--text-secondary)' }}>Manage your personal details and account settings.</p>
@@ -189,49 +221,30 @@ const Profile = () => {
               <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>KYC Verification</h3>
-                <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>Pending Verification</span>
+                {user?.isVerified ? (
+                  <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--success-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle size={14} /> Verified
+                  </span>
+                ) : (
+                  <span style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning-color)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                    Pending
+                  </span>
+                )}
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                Upload your Aadhar or PAN card to complete your KYC. This builds trust with owners and enables instant booking.
+                Verify your identity instantly via DigiLocker. This builds trust with owners and enables instant booking.
               </p>
               
-              <div className="input-group">
-                <label className="input-label">Document Type</label>
-                <select 
-                  className="input-field" 
-                  disabled={!isEditing}
-                  defaultValue="aadhar"
-                >
-                  <option value="aadhar">Aadhar Card</option>
-                  <option value="pan">PAN Card</option>
-                  <option value="passport">Passport</option>
-                </select>
-              </div>
-
-              <div className="input-group">
-                <label className="input-label">Document Number</label>
-                <div style={{ position: 'relative' }}>
-                  <Shield size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    style={{ paddingLeft: '2.5rem' }}
-                    placeholder="Enter ID Number"
-                    disabled={!isEditing}
-                  />
+              {!user?.isVerified && (
+                <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/DigiLocker_Logo.png" alt="DigiLocker" style={{ height: '30px', marginBottom: '1rem' }} />
+                  <h4 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Paperless Offline e-KYC</h4>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Securely fetch your details from UIDAI via DigiLocker</p>
+                  <button type="button" onClick={() => setIsKycOpen(true)} className="btn btn-primary" style={{ width: '100%', backgroundColor: '#0055A5' }}>
+                    Verify with DigiLocker
+                  </button>
                 </div>
-              </div>
-
-              <div className="input-group">
-                <label className="input-label">Upload Document Photo</label>
-                <input 
-                  type="file" 
-                  className="input-field" 
-                  disabled={!isEditing}
-                  accept="image/*,.pdf"
-                  style={{ padding: '0.6rem 1rem' }}
-                />
-              </div>
+              )}
             </>
           )}
 
@@ -247,6 +260,62 @@ const Profile = () => {
           </div>
         </form>
       </div>
+
+      {/* DigiLocker Mock Modal */}
+      {isKycOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(5px)' }}>
+          <div className="card animate-fade-in" style={{ width: '90%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
+            <button onClick={() => {setIsKycOpen(false); setKycStep(1);}} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <X size={20} />
+            </button>
+            
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/DigiLocker_Logo.png" alt="DigiLocker" style={{ height: '40px', marginBottom: '1rem' }} />
+              <h3 style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>Verify your Aadhaar</h3>
+            </div>
+
+            <form onSubmit={kycStep === 1 ? (e) => { e.preventDefault(); setKycStep(2); } : handleVerifyKyc}>
+              {kycStep === 1 ? (
+                <>
+                  <div className="input-group">
+                    <label className="input-label">Aadhaar Number</label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      placeholder="Enter 12 digit Aadhaar" 
+                      value={aadhaar} 
+                      onChange={e => setAadhaar(e.target.value)} 
+                      maxLength="12"
+                      required 
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary" style={{ width: '100%', backgroundColor: '#0055A5' }}>
+                    Get OTP
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="input-group">
+                    <label className="input-label">Enter OTP sent to mobile</label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      placeholder="Dummy OTP: 1234" 
+                      value={otp} 
+                      onChange={e => setOtp(e.target.value)} 
+                      maxLength="4"
+                      required 
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary" style={{ width: '100%', backgroundColor: '#10B981' }}>
+                    Verify & Proceed
+                  </button>
+                </>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -116,6 +116,22 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
   }
 });
 
+// 3.5 User Profile: KYC Verify (Dummy DigiLocker)
+app.put('/api/profile/kyc', authenticateToken, async (req, res) => {
+  const { otp } = req.body;
+  if (otp !== '1234') return res.status(400).json({ error: 'Invalid OTP' });
+  
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { isVerified: true }
+    });
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to verify KYC' });
+  }
+});
+
 // 4. Rooms: Get all available rooms
 app.get('/api/rooms', async (req, res) => {
   try {
