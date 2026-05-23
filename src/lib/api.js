@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://city-room.onrender.com/api';
 
 export const api = {
   get: async (endpoint) => {
