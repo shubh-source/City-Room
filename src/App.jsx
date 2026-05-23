@@ -9,7 +9,7 @@ import OwnerDashboard from './pages/owner/Dashboard';
 
 import AddRoom from './pages/owner/AddRoom';
 import ManageRooms from './pages/owner/ManageRooms';
-import OwnerEnquiries from './pages/owner/Enquiries';
+import OwnerEnquiries from './pages/owner/OwnerEnquiries';
 
 import Terms from './pages/legal/Terms';
 import Privacy from './pages/legal/Privacy';
