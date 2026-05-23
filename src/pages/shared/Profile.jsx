@@ -255,7 +255,7 @@ const Profile = () => {
             )}
           </div>
 
-          {isOwner ? (
+          {isOwner && (
             <>
               <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
               <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Payout Details</h3>
