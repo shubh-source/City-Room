@@ -311,7 +311,6 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
 });
 
 // Start Server
-const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 CityRoom Backend running on http://localhost:${PORT}`);
+  console.log(`🚀 CityRoom Backend running on port ${PORT}`);
 });
