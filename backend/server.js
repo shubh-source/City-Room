@@ -36,76 +36,64 @@ const authenticateToken = (req, res, next) => {
 };
 
 // --- Auth Routes ---
+const admin = require('./firebaseAdmin');
 
-// 1. Signup: Send OTP
+// 1. Signup: Verify Firebase Token & Create User
 app.post('/api/auth/signup', async (req, res) => {
-  const { name, email, phone, role } = req.body;
-  if (!name || !email || !phone) return res.status(400).json({ error: 'Name, email, and phone are required' });
-  
-  const existingUser = await prisma.user.findFirst({
-    where: { OR: [{ email }, { phone }] }
-  });
-  
-  if (existingUser) {
-    return res.status(400).json({ error: 'User with this email or phone already exists' });
-  }
-  
-  console.log(`Sending OTP 1234 to ${phone}`);
-  res.json({ message: 'OTP sent successfully', mockOtp: '1234' });
-});
-
-// 2. Signup: Verify OTP
-app.post('/api/auth/verify-signup', async (req, res) => {
-  const { name, email, phone, role, otp } = req.body;
-  
-  if (otp !== '1234') return res.status(400).json({ error: 'Invalid OTP' });
+  const { name, email, phone, role, idToken } = req.body;
+  if (!idToken) return res.status(400).json({ error: 'ID Token required' });
   
   try {
-    const user = await prisma.user.create({
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const verifiedPhone = decodedToken.phone_number; // e.g. +919999999999
+    
+    // Check if user already exists
+    let user = await prisma.user.findFirst({
+      where: { OR: [{ email }, { phone }] }
+    });
+    
+    if (user) {
+      return res.status(400).json({ error: 'User with this email or phone already exists' });
+    }
+    
+    // Create new user
+    user = await prisma.user.create({
       data: { name, email, phone, role: role || 'renter', isVerified: true }
     });
     
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    console.error(error);
+    res.status(401).json({ error: 'Invalid token or signup failed' });
   }
 });
 
-// 3. Login: Send OTP
+// 2. Login: Verify Firebase Token & Return JWT
 app.post('/api/auth/login', async (req, res) => {
-  const { identifier } = req.body; // can be email or phone
-  if (!identifier) return res.status(400).json({ error: 'Email or phone required' });
-  
-  const user = await prisma.user.findFirst({
-    where: { OR: [{ email: identifier }, { phone: identifier }] }
-  });
-  
-  if (!user) {
-    return res.status(404).json({ error: 'User not found. Please sign up first.' });
-  }
-  
-  console.log(`Sending OTP 1234 to ${identifier}`);
-  res.json({ message: 'OTP sent successfully', mockOtp: '1234' });
-});
-
-// 4. Login: Verify OTP
-app.post('/api/auth/verify-login', async (req, res) => {
-  const { identifier, otp } = req.body;
-  
-  if (otp !== '1234') return res.status(400).json({ error: 'Invalid OTP' });
+  const { idToken } = req.body;
+  if (!idToken) return res.status(400).json({ error: 'ID Token required' });
   
   try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const phoneWithCountry = decodedToken.phone_number; // e.g. +919999999999
+    
+    // The database might store phone as 10 digits without +91. Let's handle both.
+    const phoneLocal = phoneWithCountry.replace('+91', '');
+    
     const user = await prisma.user.findFirst({
-      where: { OR: [{ email: identifier }, { phone: identifier }] }
+      where: { OR: [{ phone: phoneWithCountry }, { phone: phoneLocal }] }
     });
     
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found. Please sign up first.' });
+    }
     
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    console.error(error);
+    res.status(401).json({ error: 'Invalid token' });
   }
 });
 

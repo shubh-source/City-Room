@@ -32,7 +32,7 @@ const OwnerDashboard = () => {
         const token = localStorage.getItem('cityroom_token');
         const [roomsData, notifRes] = await Promise.all([
           api.get('/owner/rooms'),
-          fetch('http://localhost:5000/api/notifications', { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch('https://cityroom-173301158154.europe-west1.run.app/api/notifications', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
         setRooms(roomsData);
         if (notifRes.ok) {

@@ -61,7 +61,7 @@ const RenterHome = () => {
   const toggleShortlist = async (roomId) => {
     try {
       const token = localStorage.getItem('cityroom_token');
-      const res = await fetch(`http://localhost:5000/api/shortlist/${roomId}`, {
+      const res = await fetch(`https://cityroom-173301158154.europe-west1.run.app/api/shortlist/${roomId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

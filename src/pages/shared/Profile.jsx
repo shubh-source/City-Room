@@ -79,7 +79,7 @@ const Profile = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('cityroom_token');
-      const res = await fetch('http://localhost:5000/api/profile/kyc', {
+      const res = await fetch('https://cityroom-173301158154.europe-west1.run.app/api/profile/kyc', {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ const Profile = () => {
       const token = localStorage.getItem('cityroom_token');
       
       // 1. Create order on backend
-      const orderRes = await fetch('http://localhost:5000/api/payment/create-order', {
+      const orderRes = await fetch('https://cityroom-173301158154.europe-west1.run.app/api/payment/create-order', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -123,7 +123,7 @@ const Profile = () => {
         order_id: orderData.id,
         handler: async function (response) {
           // 3. Verify Payment
-          const verifyRes = await fetch('http://localhost:5000/api/payment/verify', {
+          const verifyRes = await fetch('https://cityroom-173301158154.europe-west1.run.app/api/payment/verify', {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',

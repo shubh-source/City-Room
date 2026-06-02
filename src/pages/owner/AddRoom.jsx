@@ -80,7 +80,7 @@ const AddRoom = () => {
 
     try {
       const token = localStorage.getItem('cityroom_token');
-      await fetch('http://localhost:5000/api/rooms', {
+      await fetch('https://cityroom-173301158154.europe-west1.run.app/api/rooms', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

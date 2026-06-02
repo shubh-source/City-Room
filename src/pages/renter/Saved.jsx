@@ -10,7 +10,7 @@ const Saved = () => {
   const fetchShortlists = async () => {
     try {
       const token = localStorage.getItem('cityroom_token');
-      const res = await fetch('http://localhost:5000/api/shortlists', {
+      const res = await fetch('https://cityroom-173301158154.europe-west1.run.app/api/shortlists', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -29,7 +29,7 @@ const Saved = () => {
   const toggleShortlist = async (roomId) => {
     try {
       const token = localStorage.getItem('cityroom_token');
-      await fetch(`http://localhost:5000/api/shortlist/${roomId}`, {
+      await fetch(`https://cityroom-173301158154.europe-west1.run.app/api/shortlist/${roomId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

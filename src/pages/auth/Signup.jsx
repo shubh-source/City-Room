@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { User, Mail, Smartphone, CheckCircle, ArrowLeft } from 'lucide-react';
+import { auth } from '../../lib/firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -13,6 +15,15 @@ const Signup = () => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
+
+  useEffect(() => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+      });
+    }
+  }, []);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -20,10 +31,16 @@ const Signup = () => {
     
     setLoading(true);
     try {
-      await api.post('/auth/signup', { ...formData, role });
+      // 1. Send OTP via Firebase
+      const phoneNumber = '+91' + formData.phone; // Assuming India for now
+      const appVerifier = window.recaptchaVerifier;
+      const confirmation = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+      setConfirmationResult(confirmation);
       setStep(2); // Move to OTP step
     } catch (err) {
-      alert(err.message || 'Signup failed. User might already exist.');
+      console.error(err);
+      alert('Failed to send OTP. Try again.');
+      if (window.recaptchaVerifier) window.recaptchaVerifier.render().then(widgetId => window.grecaptcha.reset(widgetId));
     } finally {
       setLoading(false);
     }
@@ -31,11 +48,17 @@ const Signup = () => {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (otp.length < 4) return;
+    if (otp.length < 6) return; // Firebase OTP is 6 digits
     
     setLoading(true);
     try {
-      const data = await api.post('/auth/verify-signup', { ...formData, role, otp });
+      // 2. Verify OTP with Firebase
+      const result = await confirmationResult.confirm(otp);
+      const idToken = await result.user.getIdToken();
+
+      // 3. Send token to backend to create user
+      const data = await api.post('/auth/signup', { ...formData, role, idToken });
+      
       localStorage.setItem('cityroom_token', data.token);
       localStorage.setItem('cityroom_user', JSON.stringify(data.user));
       
@@ -45,7 +68,8 @@ const Signup = () => {
         navigate('/renter');
       }
     } catch (err) {
-      alert('Invalid OTP');
+      console.error(err);
+      alert('Invalid OTP or verification failed');
     } finally {
       setLoading(false);
     }
@@ -66,7 +90,7 @@ const Signup = () => {
           Create {role === 'owner' ? 'Owner' : 'Renter'} Account
         </h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-          {step === 1 ? 'Enter your details to register' : 'Enter the 4-digit code sent to your phone/email'}
+          {step === 1 ? 'Enter your details to register' : 'Enter the 6-digit code sent to your phone'}
         </p>
 
         {step === 1 ? (
@@ -125,7 +149,7 @@ const Signup = () => {
               style={{ width: '100%', padding: '0.875rem' }}
               disabled={loading}
             >
-              {loading ? 'Processing...' : 'Sign Up'}
+              {loading ? 'Sending OTP...' : 'Sign Up'}
             </button>
 
             <div className="text-center mt-4">
@@ -141,9 +165,9 @@ const Signup = () => {
               <input 
                 type="text" 
                 className="input-field" 
-                placeholder="0000"
+                placeholder="000000"
                 value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 style={{ textAlign: 'center', letterSpacing: '0.5rem', fontSize: '1.5rem', fontWeight: 'bold' }}
                 autoFocus
                 required
@@ -154,7 +178,7 @@ const Signup = () => {
               type="submit" 
               className="btn btn-primary w-full mt-4" 
               style={{ width: '100%', padding: '0.875rem' }}
-              disabled={otp.length < 4 || loading}
+              disabled={otp.length < 6 || loading}
             >
               <CheckCircle size={20} />
               {loading ? 'Verifying...' : 'Verify & Create Account'}
@@ -170,6 +194,7 @@ const Signup = () => {
             </div>
           </form>
         )}
+        <div id="recaptcha-container"></div>
       </div>
     </div>
   );
