@@ -46,6 +46,8 @@ const OwnerDashboard = () => {
             renterId: b.renterId,
             roomId: b.roomId,
             name: b.renter?.legalName || b.renter?.name || 'Tenant',
+            address: b.renter?.legalAddress,
+            dob: b.renter?.dob,
             roomTitle: b.room?.title || 'Room',
             daysAgo: Math.floor((new Date() - new Date(b.createdAt)) / (1000 * 60 * 60 * 24))
           }));
@@ -156,7 +158,14 @@ const OwnerDashboard = () => {
                 <div key={tenant.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', marginBottom: '0.5rem' }}>
                   <div>
                     <h4 style={{ fontWeight: 'bold' }}>{tenant.name}</h4>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Shifted to {tenant.roomTitle} ({tenant.daysAgo === 0 ? 'Today' : `${tenant.daysAgo} days ago`})</p>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>In {tenant.roomTitle} &bull; {tenant.daysAgo} days</p>
+                    {(tenant.address || tenant.dob) && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                        {tenant.dob && <span>DOB: {tenant.dob}</span>}
+                        {tenant.dob && tenant.address && <span> &bull; </span>}
+                        {tenant.address && <span>{tenant.address}</span>}
+                      </div>
+                    )}
                   </div>
                   <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }} onClick={() => alert('Review system opened for ' + tenant.name)}>
                     <Star size={16} /> Write Review

@@ -20,6 +20,8 @@ const OwnerEnquiries = () => {
           id: b.id,
           name: b.renter?.legalName || b.renter?.name || 'User',
           phone: b.renter?.phone,
+          address: b.renter?.legalAddress,
+          dob: b.renter?.dob,
           room: b.room?.title || 'Room',
           type: 'Advance (Escrow)',
           amount: `₹${b.amountPaid + b.platformFee}`,
@@ -118,6 +120,15 @@ const OwnerEnquiries = () => {
                   </span>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{pay.date}</span>
                 </div>
+                <h4 style={{ fontWeight: 'bold' }}>{pay.name}</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{pay.phone}</p>
+                {(pay.address || pay.dob) && (
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                    {pay.dob && <span>DOB: {pay.dob}</span>}
+                    {pay.dob && pay.address && <span> &bull; </span>}
+                    {pay.address && <span>{pay.address}</span>}
+                  </div>
+                )}
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{pay.amount} from {pay.name}</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>For: {pay.room} ({pay.duration} month{pay.duration > 1 ? 's' : ''})</p>
               </div>

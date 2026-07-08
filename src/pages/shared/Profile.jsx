@@ -37,7 +37,9 @@ const Profile = () => {
         phone: user.phone || '',
         location: userLocation,
         upiId: user.upiId || 'not-set@upi',
-        legalName: user.legalName || ''
+        legalName: user.legalName || '',
+        legalAddress: user.legalAddress || '',
+        dob: user.dob || ''
       });
     }
   }, [user, userLocation]);
@@ -155,8 +157,10 @@ const Profile = () => {
           <div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{profileData.name}</h2>
             {user?.isVerified && profileData.legalName && (
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Document Name: <strong>{profileData.legalName}</strong>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                <div>Document Name: <strong>{profileData.legalName}</strong></div>
+                {profileData.dob && <div>DOB: <strong>{profileData.dob}</strong></div>}
+                {profileData.legalAddress && <div>Address: <strong>{profileData.legalAddress}</strong></div>}
               </div>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--secondary-color)', fontSize: '0.875rem', marginTop: '0.25rem' }}>

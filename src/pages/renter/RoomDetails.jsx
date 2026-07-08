@@ -219,6 +219,11 @@ const RoomDetails = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--secondary-color)' }}>
                   <Shield size={14} /> Verified Owner
                 </div>
+                {room.owner?.legalAddress && (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <MapPin size={12} /> {room.owner.legalAddress}
+                  </div>
+                )}
               </div>
             </div>
           </div>

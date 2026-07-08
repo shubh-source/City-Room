@@ -14,6 +14,8 @@ model User {
   role         String    @default("renter") // "renter" or "owner"
   name         String?
   legalName    String?
+  legalAddress String?
+  dob          String?
   email        String?   @unique
   location     String?
   upiId        String?   // For owner payouts

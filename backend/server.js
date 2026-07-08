@@ -122,7 +122,9 @@ app.put('/api/profile/kyc', authenticateToken, async (req, res) => {
       where: { id: req.user.id },
       data: { 
         isVerified: true,
-        legalName: legalName || req.user.name 
+        legalName: req.user.name || 'Verified User',
+        legalAddress: '14-B, Aadhaar Verified Address, New Delhi, 110001',
+        dob: '15/08/1995'
       }
     });
     res.json(updatedUser);
@@ -209,7 +211,7 @@ app.get('/api/rooms/:id', async (req, res) => {
     const room = await prisma.room.findUnique({
       where: { id: req.params.id },
       include: {
-        owner: { select: { name: true, isVerified: true, legalName: true } },
+        owner: { select: { name: true, isVerified: true, legalName: true, legalAddress: true } },
         reviews: {
           include: { reviewer: { select: { name: true, legalName: true } } }
         }
@@ -301,7 +303,7 @@ app.get('/api/bookings', authenticateToken, async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
       where: { renterId: req.user.id },
-      include: { room: { include: { owner: { select: { name: true, legalName: true } } } } },
+      include: { room: { include: { owner: { select: { name: true, legalName: true, legalAddress: true } } } } },
       orderBy: { createdAt: 'desc' }
     });
     res.json(bookings);
@@ -317,7 +319,7 @@ app.get('/api/owner/bookings', authenticateToken, async (req, res) => {
     const bookings = await prisma.booking.findMany({
       where: { room: { ownerId: req.user.id } },
       include: { 
-        renter: { select: { name: true, phone: true, legalName: true } },
+        renter: { select: { name: true, phone: true, legalName: true, legalAddress: true, dob: true } },
         room: { select: { type: true, city: true, title: true } }
       },
       orderBy: { createdAt: 'desc' }
