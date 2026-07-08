@@ -1,15 +1,18 @@
-const API_URL = 'https://city-room.onrender.com/api';
+const API_URL = 'http://localhost:5000/api';
 
 export const api = {
   get: async (endpoint) => {
     const token = localStorage.getItem('cityroom_token');
-    const res = await fetch(`${API_URL}${endpoint}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+    try {
+      const res = await fetch(`${API_URL}${endpoint}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return await res.json();
+    } catch (err) {
+      console.error("API GET Error:", err);
+      throw err;
+    }
   },
   
   post: async (endpoint, data) => {

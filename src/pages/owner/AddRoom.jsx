@@ -79,23 +79,15 @@ const AddRoom = () => {
     }
 
     try {
-      const token = localStorage.getItem('cityroom_token');
-      await fetch('https://cityroom-173301158154.europe-west1.run.app/api/rooms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: `${formData.type} in ${formData.city}`,
-          address: formData.address,
-          city: formData.city,
-          rent: formData.rent,
-          advance: formData.advance,
-          type: formData.type,
-          amenities: formData.amenities,
-          photos: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=600&auto=format&fit=crop'] // Dummy photo for now
-        })
+      await api.post('/rooms', {
+        title: `${formData.type} in ${formData.city}`,
+        address: formData.address,
+        city: formData.city,
+        rent: formData.rent,
+        advance: formData.advance,
+        type: formData.type,
+        amenities: formData.amenities,
+        photos: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=600&auto=format&fit=crop']
       });
       alert('Room listed successfully!');
       navigate('/owner');

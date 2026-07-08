@@ -1,6 +1,9 @@
 const admin = require('firebase-admin');
 
-// Initialize Firebase Admin (Since we are on Google Cloud Run, it can use the default service account automatically)
-admin.initializeApp();
+const serviceAccount = require('./serviceAccountKey.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
 module.exports = admin;

@@ -19,28 +19,28 @@ const Privacy = () => {
           <p>Last updated: May 2026</p>
 
           <section>
-            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>1. Information We Collect</h2>
-            <p>We collect information you provide directly to us, such as when you create or modify your account, request services, contact customer support, or otherwise communicate with us. This information may include: name, email, phone number, postal address, profile picture, and payment information.</p>
+            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>1. Data Collection under DPDP Act</h2>
+            <p>In accordance with the <strong>Digital Personal Data Protection (DPDP) Act, 2023</strong>, we collect information you provide directly to us with your explicit consent. This includes your name, email, phone number, Aadhaar/PAN details (for KYC verification), and payment information required to facilitate secure rentals.</p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>2. How We Use Your Information</h2>
-            <p>We use the information we collect to provide, maintain, and improve our services. Specifically, we use it to verify your identity (KYC), process escrow transactions, send support and administrative messages, and communicate with you about products, services, offers, and events.</p>
+            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>2. Data Purpose & Processing</h2>
+            <p>We process your personal data strictly for legitimate purposes related to property rental. This includes identity verification (KYC), fraud prevention, and escrow transaction processing. We do not sell your data or use it for targeted advertising without your explicit, withdrawable consent.</p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>3. Information Sharing</h2>
-            <p>We do not share your personal information with third parties except as described in this policy. We may share information with vendors, consultants, and other service providers who need access to such information to carry out work on our behalf. We also share limited necessary information between Owners and Renters to facilitate property viewings and agreements.</p>
+            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>3. Information Sharing & Third Parties</h2>
+            <p>We share limited, necessary information between Owners and Renters to facilitate property viewings and agreements. We may also share data with verified third-party KYC providers and payment gateways compliant with the <strong>Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules, 2011</strong>.</p>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>4. Data Security</h2>
-            <p>In compliance with the Information Technology Act 2000, we take reasonable measures to help protect information about you from loss, theft, misuse and unauthorized access, disclosure, alteration and destruction.</p>
+            <p>In compliance with the <strong>Information Technology Act, 2000</strong>, we implement robust, industry-standard security measures (including encryption and secure nodal accounts) to protect your sensitive personal data from unauthorized access, disclosure, or alteration.</p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>5. Your Rights</h2>
-            <p>You may update, correct, or delete your account information at any time by logging into your account. If you wish to permanently delete your account and all associated data, please contact our support team.</p>
+            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>5. Your Rights as a Data Principal</h2>
+            <p>Under the DPDP Act, you have the right to access, update, correct, or erase your personal data at any time. You may also withdraw your consent for data processing by deleting your account. To exercise your rights or contact our Data Protection Officer (DPO), please reach out to our support team.</p>
           </section>
         </div>
       </div>

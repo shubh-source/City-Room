@@ -18,3 +18,4 @@ pnpm-debug.log*
 backend/node_modules
 backend/.env
 backend/.env.*
+backend/serviceAccountKey.json

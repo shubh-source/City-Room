@@ -30,6 +30,7 @@ const Signup = () => {
     if (formData.phone.length < 10) return alert('Enter a valid 10-digit phone number');
     
     setLoading(true);
+
     try {
       // 1. Send OTP via Firebase
       const phoneNumber = '+91' + formData.phone; // Assuming India for now
@@ -51,6 +52,7 @@ const Signup = () => {
     if (otp.length < 6) return; // Firebase OTP is 6 digits
     
     setLoading(true);
+
     try {
       // 2. Verify OTP with Firebase
       const result = await confirmationResult.confirm(otp);

@@ -29,6 +29,7 @@ const Login = () => {
     e.preventDefault();
     if (identifier.length < 10) return;
     setLoading(true);
+
     try {
       // 1. Send OTP via Firebase
       const phoneNumber = identifier.includes('+') ? identifier : '+91' + identifier;
@@ -49,6 +50,7 @@ const Login = () => {
     e.preventDefault();
     if (otp.length < 6) return;
     setLoading(true);
+
     try {
       // 2. Verify OTP with Firebase
       const result = await confirmationResult.confirm(otp);

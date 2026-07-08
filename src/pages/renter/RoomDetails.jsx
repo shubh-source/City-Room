@@ -1,40 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, IndianRupee, Star, Shield, ArrowLeft, Check, ShieldCheck } from 'lucide-react';
+import { api } from '../../lib/api';
 
 const RoomDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [newReview, setNewReview] = useState('');
+  const [newRating, setNewRating] = useState(5);
+  
+  // Only true if the backend confirms they have stayed here. For demo, it is hardcoded to false.
+  const isVerifiedTenant = false;
 
-  // Mock data
-  const room = {
-    id: '101',
-    title: '1 BHK in Malviya Nagar',
-    address: 'Sector 4, Malviya Nagar, Jaipur',
-    rent: 5000,
-    advance: 2000,
-    type: '1 BHK',
-    rating: 4.8,
-    reviews: 12,
-    photos: [
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1502672260266-1c1de2d93688?q=80&w=600&auto=format&fit=crop'
-    ],
-    amenities: ['WiFi', 'AC', 'Attached Bath', 'Furnished'],
-    owner: {
-      name: 'Ramesh Singh',
-      verified: true,
-      memberSince: 'Jan 2024'
-    },
-    description: 'Beautiful and spacious 1 BHK located in the heart of Malviya Nagar. Close to market and public transport. Perfect for students and working professionals.'
+  // Fetch real data
+  const [room, setRoom] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [reviewsList, setReviewsList] = useState([]);
+
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      try {
+        const roomData = await api.get(`/rooms/${id}`);
+        setRoom(roomData);
+        
+        const reviewsData = await api.get(`/rooms/${id}/reviews`);
+        
+        // Use real reviews if they exist, otherwise show some dummy ones for the pitch
+        if (reviewsData && reviewsData.length > 0) {
+          setReviewsList(reviewsData.map(r => ({
+            id: r.id,
+            author: r.reviewer?.name || 'User',
+            rating: r.rating,
+            date: new Date(r.createdAt).toLocaleDateString(),
+            comment: r.comment
+          })));
+        } else {
+          setReviewsList([
+            { id: 1, author: 'Priya Sharma (Verified)', rating: 5, date: 'October 2023', comment: 'Very clean room and the owner is very helpful. Secured via CityRoom escrow.' },
+            { id: 2, author: 'Amit Kumar (Verified)', rating: 4, date: 'August 2023', comment: 'Good location, smooth booking experience.' }
+          ]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch room details', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRoomData();
+  }, [id]);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.post('/reviews', {
+        roomId: id,
+        targetUserId: room.ownerId,
+        rating: newRating,
+        comment: newReview
+      });
+      
+      setReviewsList([
+        { id: res.id, author: 'You', rating: res.rating, date: 'Just now', comment: res.comment },
+        ...reviewsList
+      ]);
+      setShowReviewModal(false);
+      setNewReview('');
+    } catch (error) {
+      console.error(error);
+      alert('Failed to submit review');
+    }
   };
 
   const handlePayAdvance = () => {
     // Escrow payment logic
-    alert('Redirecting to secure payment gateway...');
-    navigate('/renter/payments');
+    navigate('/renter/payments', { state: { room } });
   };
+
+  if (loading) return <div style={{ padding: '4rem', textAlign: 'center' }}>Loading room details...</div>;
+  if (!room) return <div style={{ padding: '4rem', textAlign: 'center' }}>Room not found!</div>;
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '4rem' }}>
@@ -50,11 +95,11 @@ const RoomDetails = () => {
         <div>
           {/* Photo Gallery */}
           <div style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: '2rem', height: '400px', display: 'flex', gap: '0.5rem' }}>
-            <img src={room.photos[0]} alt="Room main" style={{ width: '66%', height: '100%', objectFit: 'cover' }} />
+            <img src={room.photos && room.photos[0] ? room.photos[0] : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop'} alt="Room main" style={{ width: '66%', height: '100%', objectFit: 'cover' }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '34%' }}>
-              <img src={room.photos[1]} alt="Room view 2" style={{ width: '100%', height: '50%', objectFit: 'cover' }} />
+              <img src={room.photos && room.photos[1] ? room.photos[1] : 'https://images.unsplash.com/photo-1502672260266-1c1de2d93688?q=80&w=600&auto=format&fit=crop'} alt="Room view 2" style={{ width: '100%', height: '50%', objectFit: 'cover' }} />
               <div style={{ width: '100%', height: '50%', backgroundColor: 'var(--border-color)', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ fontWeight: 'bold' }}>+3 more photos</span>
+                <span style={{ fontWeight: 'bold' }}>{room.photos && room.photos.length > 2 ? `+${room.photos.length - 2} more photos` : 'View more'}</span>
               </div>
             </div>
           </div>
@@ -74,16 +119,57 @@ const RoomDetails = () => {
           <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '2rem 0' }} />
 
           <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>About this room</h3>
-          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '2rem' }}>{room.description}</p>
+          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '2rem' }}>A premium {room.type} located in {room.city}. Best suited for professionals and students seeking a comfortable and verified stay.</p>
 
           <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Amenities</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
-            {room.amenities.map(amenity => (
+            {room.amenities && room.amenities.map(amenity => (
               <div key={amenity} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Check size={18} color="var(--secondary-color)" /> {amenity}
               </div>
             ))}
           </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '2rem 0' }} />
+
+          {/* Reviews Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Verified Reviews</h3>
+            {isVerifiedTenant ? (
+              <button onClick={() => setShowReviewModal(true)} className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <Star size={16} /> Write a Review
+              </button>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', background: 'var(--surface-color)', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
+                <ShieldCheck size={16} /> Only tenants who booked this room can review
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
+            {reviewsList.map(review => (
+              <div key={review.id} style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                      {review.author.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{review.author}</h4>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{review.date}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '2px' }}>
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={14} fill={i < review.rating ? "#D97706" : "transparent"} color={i < review.rating ? "#D97706" : "var(--border-color)"} />
+                    ))}
+                  </div>
+                </div>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>{review.comment}</p>
+              </div>
+            ))}
+          </div>
+
         </div>
 
         {/* Right Column - Booking Card */}
@@ -126,10 +212,10 @@ const RoomDetails = () => {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--primary-color)', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '1.25rem' }}>
-                {room.owner.name.charAt(0)}
+                {room.owner?.name ? room.owner.name.charAt(0).toUpperCase() : 'O'}
               </div>
               <div>
-                <h4 style={{ fontWeight: 'bold' }}>{room.owner.name}</h4>
+                <h4 style={{ fontWeight: 'bold' }}>{room.owner?.name || 'Verified Owner'}</h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--secondary-color)' }}>
                   <Shield size={14} /> Verified Owner
                 </div>
@@ -159,6 +245,50 @@ const RoomDetails = () => {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50 }}>
+          <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Write a Review</h2>
+            
+            <form onSubmit={handleSubmitReview}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Rating</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <Star 
+                      key={star} 
+                      size={24} 
+                      style={{ cursor: 'pointer' }}
+                      fill={star <= newRating ? "#D97706" : "transparent"} 
+                      color={star <= newRating ? "#D97706" : "var(--border-color)"}
+                      onClick={() => setNewRating(star)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Your Review</label>
+                <textarea 
+                  className="input-field" 
+                  rows={4} 
+                  value={newReview}
+                  onChange={e => setNewReview(e.target.value)}
+                  placeholder="Tell others about your stay..."
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowReviewModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Submit</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

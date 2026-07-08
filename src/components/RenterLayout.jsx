@@ -1,14 +1,16 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Search, MapPin, Heart, User, LogOut, MessageSquare } from 'lucide-react';
+import { Search, MapPin, Heart, User, LogOut, MessageSquare, CreditCard, Bell, X } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 
 const RenterLayout = () => {
   const location = useLocation();
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const navItems = [
     { path: '/renter', icon: <Search size={20} />, label: 'Find Rooms' },
     { path: '/renter/saved', icon: <Heart size={20} />, label: 'Shortlists' },
+    { path: '/renter/payments', icon: <CreditCard size={20} />, label: 'Payments' },
     { path: '/support', icon: <MessageSquare size={20} />, label: 'Support' },
   ];
 
@@ -66,15 +68,43 @@ const RenterLayout = () => {
           
           <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-color)' }} />
           
-          <Link to="/renter/profile" style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ position: 'relative' }}>
+            <div 
+              style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+            >
+              <Bell size={20} />
+            </div>
+
+            {/* Notifications Dropdown */}
+            {isNotificationsOpen && (
+              <div className="animate-fade-in card" style={{ 
+                position: 'absolute', top: '150%', right: '-50px', width: '320px', 
+                padding: '0', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 100 
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+                  <h3 style={{ fontWeight: 'bold', fontSize: '1rem', margin: 0 }}>Notifications</h3>
+                  <button onClick={() => setIsNotificationsOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={16} /></button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '300px', overflowY: 'auto', padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  No new notifications.
+                </div>
+                <div style={{ padding: '0.75rem', textAlign: 'center', borderTop: '1px solid var(--border-color)', backgroundColor: 'var(--bg-color)', borderBottomLeftRadius: 'var(--radius-lg)', borderBottomRightRadius: 'var(--radius-lg)' }}>
+                  <span style={{ color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}>Mark all as read</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Link to="/renter/profile" style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.5rem' }}>
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--glass-bg)', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <User size={18} />
             </div>
           </Link>
 
-          <Link to="/" style={{ color: 'var(--danger-color)', marginLeft: '0.5rem' }} title="Logout">
+          <button onClick={() => { localStorage.removeItem('cityroom_user'); localStorage.removeItem('cityroom_token'); window.location.href = '/'; }} style={{ color: 'var(--danger-color)', marginLeft: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} title="Logout">
             <LogOut size={20} />
-          </Link>
+          </button>
         </div>
       </nav>
 

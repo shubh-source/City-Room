@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, IndianRupee, Filter, Star, X, Heart, Map as MapIcon, Grid } from 'lucide-react';
+import { Search, MapPin, IndianRupee, Filter, Star, X, Heart, Map as MapIcon, Grid, AlertCircle } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -24,6 +24,7 @@ const RenterHome = () => {
   const [shortlists, setShortlists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'map'
+  const [mapTheme, setMapTheme] = useState('minimal'); // 'normal' or 'minimal'
   
   // Filter states
   const [maxRent, setMaxRent] = useState(15000);
@@ -60,12 +61,7 @@ const RenterHome = () => {
 
   const toggleShortlist = async (roomId) => {
     try {
-      const token = localStorage.getItem('cityroom_token');
-      const res = await fetch(`https://cityroom-173301158154.europe-west1.run.app/api/shortlist/${roomId}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
+      const data = await api.post(`/shortlist/${roomId}`, {});
       
       if (data.isShortlisted) {
         setShortlists([...shortlists, roomId]);
@@ -91,6 +87,7 @@ const RenterHome = () => {
 
   return (
     <div className="animate-fade-in">
+
       {/* Search and Filters */}
       <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', position: 'relative' }}>
         <div style={{ flex: 1, position: 'relative' }}>
@@ -183,10 +180,28 @@ const RenterHome = () => {
 
       {viewMode === 'map' ? (
         <div style={{ height: '600px', width: '100%', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative', zIndex: 1 }}>
+          <button
+            onClick={() => setMapTheme(mapTheme === 'normal' ? 'minimal' : 'normal')}
+            style={{
+              position: 'absolute', top: '10px', right: '10px', zIndex: 1000,
+              background: 'white', border: '1px solid var(--border-color)', padding: '8px 12px',
+              borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)', color: 'var(--text-primary)'
+            }}
+          >
+            <MapIcon size={16} /> {mapTheme === 'normal' ? 'Switch to Minimal (Zomato Style)' : 'Switch to Normal Map'}
+          </button>
           <MapContainer center={[26.8467, 80.9462]} zoom={11} style={{ height: '100%', width: '100%' }}>
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              key={mapTheme}
+              url={mapTheme === 'normal' 
+                ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              }
+              attribution={mapTheme === 'normal'
+                ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              }
             />
             {filteredRooms.map(room => (
               <Marker key={room.id} position={getDummyCoords(room.id)}>

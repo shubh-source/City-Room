@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { User, Mail, MapPin, Save, Shield, Wallet, CheckCircle, X, CreditCard } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 import { api } from '../../lib/api';
 
@@ -78,19 +78,7 @@ const Profile = () => {
   const handleVerifyKyc = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('cityroom_token');
-      const res = await fetch('https://cityroom-173301158154.europe-west1.run.app/api/profile/kyc', {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ otp })
-      });
-      
-      if (!res.ok) throw new Error("Verification failed");
-      
-      const updatedUser = await res.json();
+      const updatedUser = await api.put('/profile/kyc', { otp });
       localStorage.setItem('cityroom_user', JSON.stringify(updatedUser));
       alert("DigiLocker KYC Verified Successfully!");
       setIsKycOpen(false);
@@ -102,14 +90,7 @@ const Profile = () => {
 
   const handlePayment = async () => {
     try {
-      const token = localStorage.getItem('cityroom_token');
-      
-      // 1. Create order on backend
-      const orderRes = await fetch('https://cityroom-173301158154.europe-west1.run.app/api/payment/create-order', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const orderData = await orderRes.json();
+      const orderData = await api.post('/payment/create-order', {});
       
       if (!orderData.id) throw new Error("Failed to create order");
 
@@ -122,22 +103,12 @@ const Profile = () => {
         description: "Monthly Unlimited Listings Subscription",
         order_id: orderData.id,
         handler: async function (response) {
-          // 3. Verify Payment
-          const verifyRes = await fetch('https://cityroom-173301158154.europe-west1.run.app/api/payment/verify', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(response)
-          });
-          
-          if (verifyRes.ok) {
-            const data = await verifyRes.json();
+          try {
+            const data = await api.post('/payment/verify', response);
             localStorage.setItem('cityroom_user', JSON.stringify(data.user));
             alert("Payment successful! Subscription Activated.");
             window.location.reload();
-          } else {
+          } catch(err) {
             alert("Payment verification failed!");
           }
         },
@@ -280,6 +251,8 @@ const Profile = () => {
             </>
           )}
 
+
+
           {/* KYC Section for both Owner & Renter */}
           <>
             <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
@@ -358,6 +331,25 @@ const Profile = () => {
             )}
           </div>
         </form>
+      </div>
+
+      {/* Legal & Support Section */}
+      <div className="card" style={{ marginBottom: '2rem' }}>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Legal & Support</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <Link to="/terms" style={{ color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid var(--glass-border)' }}>
+            <span>Terms of Service</span>
+            <span style={{ color: 'var(--text-muted)' }}>&rarr;</span>
+          </Link>
+          <Link to="/privacy" style={{ color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid var(--glass-border)' }}>
+            <span>Privacy Policy</span>
+            <span style={{ color: 'var(--text-muted)' }}>&rarr;</span>
+          </Link>
+          <Link to="/support" style={{ color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0' }}>
+            <span>Help & Support</span>
+            <span style={{ color: 'var(--text-muted)' }}>&rarr;</span>
+          </Link>
+        </div>
       </div>
 
       {/* DigiLocker Mock Modal */}

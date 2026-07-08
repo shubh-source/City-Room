@@ -9,11 +9,7 @@ const Saved = () => {
 
   const fetchShortlists = async () => {
     try {
-      const token = localStorage.getItem('cityroom_token');
-      const res = await fetch('https://cityroom-173301158154.europe-west1.run.app/api/shortlists', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
+      const data = await api.get('/shortlists');
       setShortlists(data);
     } catch (err) {
       console.error('Failed to fetch shortlists', err);
@@ -28,11 +24,7 @@ const Saved = () => {
 
   const toggleShortlist = async (roomId) => {
     try {
-      const token = localStorage.getItem('cityroom_token');
-      await fetch(`https://cityroom-173301158154.europe-west1.run.app/api/shortlist/${roomId}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      await api.post(`/shortlist/${roomId}`, {});
       // Re-fetch shortlists to remove un-shortlisted rooms
       fetchShortlists();
     } catch (err) {

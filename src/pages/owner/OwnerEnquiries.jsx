@@ -1,18 +1,45 @@
-import React, { useState } from 'react';
-import { MessageCircle, CheckCircle, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MessageCircle, CheckCircle, Clock, Star } from 'lucide-react';
+import { api } from '../../lib/api';
 
 const OwnerEnquiries = () => {
   const [activeTab, setActiveTab] = useState('enquiries');
 
-  const enquiries = [
-    { id: 1, name: 'Amit Kumar', room: '1 BHK in Malviya Nagar', date: '2 hours ago', status: 'pending' },
-    { id: 2, name: 'Suresh Sharma', room: 'Single Room near University', date: '1 day ago', status: 'contacted' },
-  ];
+  const [enquiries, setEnquiries] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const payments = [
-    { id: 1, name: 'Rahul Verma', room: '1 BHK in Malviya Nagar', type: 'Advance (Escrow)', amount: '₹2,000', status: 'held', date: 'May 1, 2026' },
-    { id: 2, name: 'Priya Patel', room: 'Single Room near University', type: 'Monthly Rent (Offline)', amount: '₹8,000', status: 'awaiting_confirmation', date: 'May 3, 2026' },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Enquiries are mock for now as we haven't implemented full enquiry messaging. 
+        // We will fetch bookings (payments) from backend.
+        const bookingsData = await api.get('/owner/bookings');
+        
+        setPayments(bookingsData.map(b => ({
+          id: b.id,
+          name: b.renter?.name || 'Renter',
+          phone: b.renter?.phone || '',
+          room: b.room?.title || 'Room',
+          type: 'Advance (Escrow)',
+          amount: `₹${b.amountPaid + b.platformFee}`,
+          duration: b.durationMonths || 1,
+          status: b.status === 'completed' ? 'confirmed' : b.status === 'escrow' ? 'held' : 'awaiting_confirmation',
+          date: new Date(b.createdAt).toLocaleDateString()
+        })));
+
+        // Mock enquiries for demo purposes since they represent people who just messaged but haven't paid yet.
+        setEnquiries([
+          { id: 1, name: 'Amit Kumar', room: '1 BHK in Malviya Nagar', date: '2 hours ago', status: 'pending' }
+        ]);
+      } catch (err) {
+        console.error('Failed to fetch owner data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="animate-fade-in">
@@ -51,8 +78,16 @@ const OwnerEnquiries = () => {
           {enquiries.map(enq => (
             <div key={enq.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{enq.name}</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.25rem' }}>Interested in: <strong>{enq.room}</strong></p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{enq.name}</h3>
+                  <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '2px', backgroundColor: '#FEF3C7', color: '#D97706', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                    <Star size={12} fill="#D97706" /> 4.8
+                  </span>
+                  <button style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}>
+                    Read Reviews
+                  </button>
+                </div>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.25rem', marginTop: '0.25rem' }}>Interested in: <strong>{enq.room}</strong></p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   <Clock size={14} /> {enq.date}
                 </div>
@@ -69,6 +104,7 @@ const OwnerEnquiries = () => {
 
       {activeTab === 'payments' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {payments.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No payments or bookings yet.</p>}
           {payments.map(pay => (
             <div key={pay.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -83,7 +119,7 @@ const OwnerEnquiries = () => {
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{pay.date}</span>
                 </div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{pay.amount} from {pay.name}</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>For: {pay.room}</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>For: {pay.room} ({pay.duration} month{pay.duration > 1 ? 's' : ''})</p>
               </div>
               
               <div>

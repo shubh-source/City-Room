@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Users, IndianRupee, TrendingUp, Bell } from 'lucide-react';
+import { Home, Users, IndianRupee, TrendingUp, Bell, AlertTriangle, Wallet, Star } from 'lucide-react';
 import { api } from '../../lib/api';
 
 const DashboardCard = ({ title, value, icon, color, trend }) => (
@@ -24,20 +24,32 @@ const DashboardCard = ({ title, value, icon, color, trend }) => (
 const OwnerDashboard = () => {
   const [rooms, setRooms] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [activeTenants, setActiveTenants] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('cityroom_token');
-        const [roomsData, notifRes] = await Promise.all([
+        const [roomsData, notifData, bookingsData] = await Promise.all([
           api.get('/owner/rooms'),
-          fetch('https://cityroom-173301158154.europe-west1.run.app/api/notifications', { headers: { 'Authorization': `Bearer ${token}` } })
+          api.get('/notifications'),
+          api.get('/owner/bookings')
         ]);
         setRooms(roomsData);
-        if (notifRes.ok) {
-          setNotifications(await notifRes.json());
-        }
+        setNotifications(notifData);
+        
+        // Active tenants are renters who have completed or escrow bookings
+        const tenants = bookingsData
+          .filter(b => b.status === 'completed' || b.status === 'escrow')
+          .map(b => ({
+            id: b.id,
+            renterId: b.renterId,
+            roomId: b.roomId,
+            name: b.renter?.name || 'Tenant',
+            roomTitle: b.room?.title || 'Room',
+            daysAgo: Math.floor((new Date() - new Date(b.createdAt)) / (1000 * 60 * 60 * 24))
+          }));
+        setActiveTenants(tenants);
       } catch (err) {
         console.error('Failed to fetch dashboard data', err);
       } finally {
@@ -121,30 +133,37 @@ const OwnerDashboard = () => {
           </div>
         </div>
 
-        <div className="card">
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Recent Enquiries</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {[1, 2].map((i) => (
-              <div key={i} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                padding: '1rem',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)'
-              }}>
-                <div>
-                  <h4 style={{ fontWeight: '600' }}>Ramesh Singh</h4>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Interested in: Room 101, Malviya Nagar</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="card">
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Recent Enquiries</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <p style={{ color: 'var(--text-secondary)' }}>No recent enquiries yet.</p>
+            </div>
+          </div>
+
+          <div className="card" style={{ border: '1px solid var(--primary-color)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Active Tenants</h2>
+              <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--primary-color)', color: 'white', padding: '2px 8px', borderRadius: '12px' }}>Review Unlocked</span>
+            </div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+              You can only review tenants after they have shifted in.
+            </p>
+            {activeTenants.length === 0 ? (
+              <p style={{ color: 'var(--text-secondary)' }}>No active tenants yet.</p>
+            ) : (
+              activeTenants.map(tenant => (
+                <div key={tenant.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', marginBottom: '0.5rem' }}>
+                  <div>
+                    <h4 style={{ fontWeight: 'bold' }}>{tenant.name}</h4>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Shifted to {tenant.roomTitle} ({tenant.daysAgo === 0 ? 'Today' : `${tenant.daysAgo} days ago`})</p>
+                  </div>
+                  <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }} onClick={() => alert('Review system opened for ' + tenant.name)}>
+                    <Star size={16} /> Write Review
+                  </button>
                 </div>
-                <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
-                  Contact via WhatsApp
-                </button>
-              </div>
-            ))}
-            <button className="btn" style={{ color: 'var(--primary-color)', alignSelf: 'flex-start', padding: 0 }}>
-              View all enquiries &rarr;
-            </button>
+              ))
+            )}
           </div>
         </div>
       </div>

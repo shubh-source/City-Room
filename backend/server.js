@@ -200,6 +200,20 @@ app.get('/api/rooms', async (req, res) => {
   }
 });
 
+// 4.5 Room Details: Get single room by ID
+app.get('/api/rooms/:id', async (req, res) => {
+  try {
+    const room = await prisma.room.findUnique({
+      where: { id: req.params.id },
+      include: { owner: { select: { name: true, isVerified: true, createdAt: true } } }
+    });
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+    res.json(room);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch room details' });
+  }
+});
+
 // 5. Rooms: Create a new room (Owner only)
 app.post('/api/rooms', authenticateToken, async (req, res) => {
   if (req.user.role !== 'owner') return res.status(403).json({ error: 'Only owners can create rooms' });
@@ -228,6 +242,82 @@ app.get('/api/owner/rooms', authenticateToken, async (req, res) => {
     res.json(rooms);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch rooms' });
+  }
+});
+
+// --- Bookings & Enquiries ---
+
+// 7. Create a Booking (Renter)
+app.post('/api/bookings', authenticateToken, async (req, res) => {
+  const { roomId, amountPaid, platformFee, status, durationMonths } = req.body;
+  
+  try {
+    const booking = await prisma.booking.create({
+      data: {
+        roomId,
+        renterId: req.user.id,
+        amountPaid: Number(amountPaid),
+        platformFee: Number(platformFee),
+        status: status || 'escrow',
+        durationMonths: durationMonths ? Number(durationMonths) : 1
+      }
+    });
+
+    // Notify the owner
+    const room = await prisma.room.findUnique({ where: { id: roomId } });
+    const renter = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (room && renter) {
+      await prisma.notification.create({
+        data: {
+          userId: room.ownerId,
+          message: `💰 ${renter.name} has paid ₹${amountPaid} to secure your ${room.type}!`
+        }
+      });
+      // Optionally update room status to occupied if it's an online payment
+      if (status === 'escrow' || status === 'completed') {
+        await prisma.room.update({
+          where: { id: roomId },
+          data: { status: 'occupied' }
+        });
+      }
+    }
+    
+    res.status(201).json(booking);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create booking' });
+  }
+});
+
+// 8. Get Renter's Bookings
+app.get('/api/bookings', authenticateToken, async (req, res) => {
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { renterId: req.user.id },
+      include: { room: { include: { owner: { select: { name: true } } } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+});
+
+// 9. Get Owner's Enquiries and Bookings
+app.get('/api/owner/bookings', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'owner') return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { room: { ownerId: req.user.id } },
+      include: { 
+        renter: { select: { name: true, phone: true } },
+        room: { select: { type: true, city: true, title: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch owner bookings' });
   }
 });
 
@@ -295,6 +385,38 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
     res.json(notifications);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+});
+
+// --- Reviews ---
+app.post('/api/reviews', authenticateToken, async (req, res) => {
+  const { roomId, targetUserId, rating, comment } = req.body;
+  try {
+    const review = await prisma.review.create({
+      data: {
+        reviewerId: req.user.id,
+        targetUserId,
+        roomId,
+        rating: Number(rating),
+        comment
+      }
+    });
+    res.status(201).json(review);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to submit review' });
+  }
+});
+
+app.get('/api/rooms/:id/reviews', async (req, res) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { roomId: req.params.id },
+      include: { reviewer: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 });
 
