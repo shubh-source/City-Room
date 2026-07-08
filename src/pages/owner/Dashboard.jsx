@@ -45,7 +45,7 @@ const OwnerDashboard = () => {
             id: b.id,
             renterId: b.renterId,
             roomId: b.roomId,
-            name: b.renter?.name || 'Tenant',
+            name: b.renter?.legalName || b.renter?.name || 'Tenant',
             roomTitle: b.room?.title || 'Room',
             daysAgo: Math.floor((new Date() - new Date(b.createdAt)) / (1000 * 60 * 60 * 24))
           }));

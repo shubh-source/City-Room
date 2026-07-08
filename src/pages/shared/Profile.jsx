@@ -19,6 +19,7 @@ const Profile = () => {
   const [isKycOpen, setIsKycOpen] = useState(false);
   const [kycStep, setKycStep] = useState(1);
   const [aadhaar, setAadhaar] = useState('');
+  const [kycName, setKycName] = useState('');
   const [otp, setOtp] = useState('');
   
   const [profileData, setProfileData] = useState({
@@ -37,6 +38,7 @@ const Profile = () => {
         phone: user.phone || '',
         location: userLocation,
         upiId: user.upiId || 'not-set@upi',
+        legalName: user.legalName || ''
       });
     }
   }, [user, userLocation]);
@@ -78,7 +80,7 @@ const Profile = () => {
   const handleVerifyKyc = async (e) => {
     e.preventDefault();
     try {
-      const updatedUser = await api.put('/profile/kyc', { otp });
+      const updatedUser = await api.put('/profile/kyc', { otp, legalName: kycName });
       localStorage.setItem('cityroom_user', JSON.stringify(updatedUser));
       alert("DigiLocker KYC Verified Successfully!");
       setIsKycOpen(false);
@@ -153,6 +155,11 @@ const Profile = () => {
           </div>
           <div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{profileData.name}</h2>
+            {user?.isVerified && profileData.legalName && (
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                Document Name: <strong>{profileData.legalName}</strong>
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--secondary-color)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
               <Shield size={16} /> Verified {isOwner ? 'Owner' : 'User'}
             </div>
@@ -377,6 +384,17 @@ const Profile = () => {
                       value={aadhaar} 
                       onChange={e => setAadhaar(e.target.value)} 
                       maxLength="12"
+                      required 
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Name as per Aadhaar</label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      placeholder="Enter exactly as on document" 
+                      value={kycName} 
+                      onChange={e => setKycName(e.target.value)} 
                       required 
                     />
                   </div>

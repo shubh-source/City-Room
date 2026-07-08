@@ -13,6 +13,7 @@ model User {
   phone        String    @unique
   role         String    @default("renter") // "renter" or "owner"
   name         String?
+  legalName    String?
   email        String?   @unique
   location     String?
   upiId        String?   // For owner payouts

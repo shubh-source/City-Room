@@ -18,8 +18,8 @@ const OwnerEnquiries = () => {
         
         setPayments(bookingsData.map(b => ({
           id: b.id,
-          name: b.renter?.name || 'Renter',
-          phone: b.renter?.phone || '',
+          name: b.renter?.legalName || b.renter?.name || 'User',
+          phone: b.renter?.phone,
           room: b.room?.title || 'Room',
           type: 'Advance (Escrow)',
           amount: `₹${b.amountPaid + b.platformFee}`,

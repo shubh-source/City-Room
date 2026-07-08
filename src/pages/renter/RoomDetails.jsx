@@ -31,7 +31,7 @@ const RoomDetails = () => {
         if (reviewsData && reviewsData.length > 0) {
           setReviewsList(reviewsData.map(r => ({
             id: r.id,
-            author: r.reviewer?.name || 'User',
+            author: r.reviewer?.legalName || r.reviewer?.name || 'User',
             rating: r.rating,
             date: new Date(r.createdAt).toLocaleDateString(),
             comment: r.comment
@@ -212,10 +212,10 @@ const RoomDetails = () => {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--primary-color)', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '1.25rem' }}>
-                {room.owner?.name ? room.owner.name.charAt(0).toUpperCase() : 'O'}
+                {room.owner?.legalName ? room.owner.legalName.charAt(0).toUpperCase() : (room.owner?.name ? room.owner.name.charAt(0).toUpperCase() : 'O')}
               </div>
               <div>
-                <h4 style={{ fontWeight: 'bold' }}>{room.owner?.name || 'Verified Owner'}</h4>
+                <h4 style={{ fontWeight: 'bold' }}>{room.owner?.legalName || room.owner?.name || 'Verified Owner'}</h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--secondary-color)' }}>
                   <Shield size={14} /> Verified Owner
                 </div>

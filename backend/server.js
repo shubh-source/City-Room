@@ -114,13 +114,16 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
 
 // 3.5 User Profile: KYC Verify (Dummy DigiLocker)
 app.put('/api/profile/kyc', authenticateToken, async (req, res) => {
-  const { otp } = req.body;
+  const { otp, legalName } = req.body;
   if (otp !== '1234') return res.status(400).json({ error: 'Invalid OTP' });
   
   try {
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
-      data: { isVerified: true }
+      data: { 
+        isVerified: true,
+        legalName: legalName || req.user.name 
+      }
     });
     res.json(updatedUser);
   } catch (error) {
@@ -200,14 +203,18 @@ app.get('/api/rooms', async (req, res) => {
   }
 });
 
-// 4.5 Room Details: Get single room by ID
+// 6. Get Room Details (For Renter)
 app.get('/api/rooms/:id', async (req, res) => {
   try {
     const room = await prisma.room.findUnique({
       where: { id: req.params.id },
-      include: { owner: { select: { name: true, isVerified: true, createdAt: true } } }
-    });
-    if (!room) return res.status(404).json({ error: 'Room not found' });
+      include: {
+        owner: { select: { name: true, isVerified: true, legalName: true } },
+        reviews: {
+          include: { reviewer: { select: { name: true, legalName: true } } }
+        }
+      }
+    });if (!room) return res.status(404).json({ error: 'Room not found' });
     res.json(room);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch room details' });
@@ -294,7 +301,7 @@ app.get('/api/bookings', authenticateToken, async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
       where: { renterId: req.user.id },
-      include: { room: { include: { owner: { select: { name: true } } } } },
+      include: { room: { include: { owner: { select: { name: true, legalName: true } } } } },
       orderBy: { createdAt: 'desc' }
     });
     res.json(bookings);
@@ -310,7 +317,7 @@ app.get('/api/owner/bookings', authenticateToken, async (req, res) => {
     const bookings = await prisma.booking.findMany({
       where: { room: { ownerId: req.user.id } },
       include: { 
-        renter: { select: { name: true, phone: true } },
+        renter: { select: { name: true, phone: true, legalName: true } },
         room: { select: { type: true, city: true, title: true } }
       },
       orderBy: { createdAt: 'desc' }
