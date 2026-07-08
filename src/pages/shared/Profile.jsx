@@ -19,7 +19,6 @@ const Profile = () => {
   const [isKycOpen, setIsKycOpen] = useState(false);
   const [kycStep, setKycStep] = useState(1);
   const [aadhaar, setAadhaar] = useState('');
-  const [kycName, setKycName] = useState('');
   const [otp, setOtp] = useState('');
   
   const [profileData, setProfileData] = useState({
@@ -80,7 +79,7 @@ const Profile = () => {
   const handleVerifyKyc = async (e) => {
     e.preventDefault();
     try {
-      const updatedUser = await api.put('/profile/kyc', { otp, legalName: kycName });
+      const updatedUser = await api.put('/profile/kyc', { otp });
       localStorage.setItem('cityroom_user', JSON.stringify(updatedUser));
       alert("DigiLocker KYC Verified Successfully!");
       setIsKycOpen(false);
@@ -384,17 +383,6 @@ const Profile = () => {
                       value={aadhaar} 
                       onChange={e => setAadhaar(e.target.value)} 
                       maxLength="12"
-                      required 
-                    />
-                  </div>
-                  <div className="input-group">
-                    <label className="input-label">Name as per Aadhaar</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="Enter exactly as on document" 
-                      value={kycName} 
-                      onChange={e => setKycName(e.target.value)} 
                       required 
                     />
                   </div>
