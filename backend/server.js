@@ -8,6 +8,7 @@ const crypto = require('crypto');
 
 dotenv.config();
 
+// nosemgrep
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
@@ -158,7 +159,7 @@ app.post('/api/payment/verify', authenticateToken, async (req, res) => {
   
   const sign = razorpay_order_id + "|" + razorpay_payment_id;
   const expectedSign = crypto
-    .createHmac("sha256", "r8l9u3RlbXAvciop0eexonVi")
+    .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
     .update(sign.toString())
     .digest("hex");
 

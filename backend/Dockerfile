@@ -18,6 +18,7 @@ COPY . .
 
 # Cloud Run injects the PORT environment variable (default 8080)
 # Express is set up to use process.env.PORT
+USER node
 EXPOSE 8080
 
 # Start the server
