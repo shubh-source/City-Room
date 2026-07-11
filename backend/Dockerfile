@@ -1,7 +1,10 @@
-FROM node:20-alpine
+FROM node:20-slim
 
 # Create app directory
 WORKDIR /usr/src/app
+
+# Install OpenSSL for Prisma compatibility
+RUN apt-get update -y && apt-get install -y openssl
 
 # Copy package files
 COPY package*.json ./
