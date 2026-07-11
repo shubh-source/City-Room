@@ -25,6 +25,12 @@ const Login = () => {
         size: 'invisible',
       });
     }
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+    };
   }, []);
 
   const handleSendOtp = async (e) => {

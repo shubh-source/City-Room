@@ -25,6 +25,12 @@ const Signup = () => {
         size: 'invisible',
       });
     }
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+    };
   }, []);
 
   const handleSignup = async (e) => {
