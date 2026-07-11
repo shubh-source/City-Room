@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { User, Mail, Smartphone, CheckCircle, ArrowLeft } from 'lucide-react';
 import { auth } from '../../lib/firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { AppContext } from '../../context/AppContext';
 
 const Signup = () => {
+  const { setUser } = useContext(AppContext);
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -40,7 +42,7 @@ const Signup = () => {
       setStep(2); // Move to OTP step
     } catch (err) {
       console.error(err);
-      alert('Failed to send OTP. Try again.');
+      alert(`Firebase Error: ${err.message}`);
       if (window.recaptchaVerifier) window.recaptchaVerifier.render().then(widgetId => window.grecaptcha.reset(widgetId));
     } finally {
       setLoading(false);
@@ -61,8 +63,9 @@ const Signup = () => {
       // 3. Send token to backend to create user
       const data = await api.post('/auth/signup', { ...formData, role, idToken });
       
-      localStorage.setItem('cityroom_token', data.token);
-      localStorage.setItem('cityroom_user', JSON.stringify(data.user));
+      localStorage.setItem('homedo_token', data.token);
+      localStorage.setItem('homedo_user', JSON.stringify(data.user));
+      setUser(data.user);
       
       if (data.user.role === 'owner') {
         navigate('/owner');

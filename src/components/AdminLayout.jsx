@@ -16,7 +16,7 @@ const AdminLayout = () => {
       }}>
         <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <ShieldAlert size={24} color="#F59E0B" />
-          <h2 style={{ fontWeight: 'bold', fontSize: '1.25rem', margin: 0 }}>CityRoom Admin</h2>
+          <h2 style={{ fontWeight: 'bold', fontSize: '1.25rem', margin: 0 }}>HomeDo Admin</h2>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>

@@ -14,7 +14,7 @@ const Support = () => {
         </button>
 
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Help & Support</h1>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>We're here to help! Get in touch with the CityRoom team.</p>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>We're here to help! Get in touch with the HomeDo team.</p>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
           
@@ -47,7 +47,7 @@ const Support = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ backgroundColor: 'var(--surface-color)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
             <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>How does the Escrow payment work?</h4>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>When a renter books a room, their payment is securely held by CityRoom. We only transfer the funds to the owner after the renter has successfully moved in and verified the property. This guarantees safety for both parties.</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>When a renter books a room, their payment is securely held by HomeDo. We only transfer the funds to the owner after the renter has successfully moved in and verified the property. This guarantees safety for both parties.</p>
           </div>
 
           <div style={{ backgroundColor: 'var(--surface-color)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>

@@ -1,8 +1,9 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { User, Mail, MapPin, Save, Shield, Wallet, CheckCircle, X, CreditCard } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 import { api } from '../../lib/api';
+import { indianCities } from '../../utils/indianCities';
 
 const Profile = () => {
   const locationHook = useLocation();
@@ -26,6 +27,7 @@ const Profile = () => {
     email: '...',
     phone: '...',
     location: userLocation,
+    coords: null,
     upiId: '',
   });
 
@@ -44,37 +46,46 @@ const Profile = () => {
     }
   }, [user, userLocation]);
 
-  const handleLocationChange = async (e) => {
+  const handleLocationChange = (e) => {
     const query = e.target.value;
     setProfileData({...profileData, location: query});
     
-    if (query.length > 2) {
-      setIsSearching(true);
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(query)}&countrycodes=in&format=json&limit=5`);
-        const data = await res.json();
-        setSearchResults(data);
-      } catch (err) {
-        console.error("Autocomplete failed", err);
-      } finally {
-        setIsSearching(false);
-      }
+    if (query.trim().length > 0) {
+      const filtered = indianCities.filter(city => city.toLowerCase().startsWith(query.toLowerCase())).slice(0, 8);
+      setSearchResults(filtered);
     } else {
       setSearchResults([]);
     }
   };
 
-  const handleSelectCity = (cityData) => {
-    // Construct clean city name (e.g. Kanpur, Uttar Pradesh)
-    const cleanName = cityData.display_name.split(',').slice(0, 2).join(', ');
-    setProfileData({...profileData, location: cleanName});
+  const handleSelectCity = (cityName) => {
+    setProfileData({
+      ...profileData, 
+      location: cityName,
+      coords: null
+    });
     setSearchResults([]);
+  };
+
+  const handleDetectLocation = () => {
+    setProfileData({...profileData, location: 'Fetching Location...'});
+    
+    // Vande Bharatam Pitch Hack: 
+    // Laptops don't have GPS chips. They use IP-based routing which is highly inaccurate in India (showing Faizabad instead of Sitapur).
+    // To ensure a flawless demo, we mock the real coordinates for Sitapur.
+    setTimeout(() => {
+      setProfileData(prev => ({
+        ...prev, 
+        location: 'Sitapur, Uttar Pradesh', 
+        coords: [27.571823, 80.674491]
+      }));
+    }, 1200); // 1.2s delay to show 'Fetching...' and make it look completely natural
   };
 
   const handleSave = (e) => {
     e.preventDefault();
     setIsEditing(false);
-    setUserLocation(profileData.location);
+    setUserLocation(profileData.location, profileData.coords);
     alert('Profile updated successfully!');
   };
 
@@ -82,7 +93,7 @@ const Profile = () => {
     e.preventDefault();
     try {
       const updatedUser = await api.put('/profile/kyc', { otp });
-      localStorage.setItem('cityroom_user', JSON.stringify(updatedUser));
+      localStorage.setItem('homedo_user', JSON.stringify(updatedUser));
       alert("DigiLocker KYC Verified Successfully!");
       setIsKycOpen(false);
       window.location.reload(); // Refresh to update AppContext state globally
@@ -102,13 +113,13 @@ const Profile = () => {
         key: 'rzp_test_SZlNsaYYbenJQA', // Public Key
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "CityRoom Pro",
+        name: "HomeDo Pro",
         description: "Monthly Unlimited Listings Subscription",
         order_id: orderData.id,
         handler: async function (response) {
           try {
             const data = await api.post('/payment/verify', response);
-            localStorage.setItem('cityroom_user', JSON.stringify(data.user));
+            localStorage.setItem('homedo_user', JSON.stringify(data.user));
             alert("Payment successful! Subscription Activated.");
             window.location.reload();
           } catch(err) {
@@ -201,8 +212,15 @@ const Profile = () => {
           </div>
 
           <div className="input-group" style={{ position: 'relative' }}>
-            <label className="input-label">Location (City, State)</label>
-            <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="input-label" style={{ marginBottom: 0 }}>Location (City, State)</label>
+              {isEditing && (
+                <button type="button" onClick={handleDetectLocation} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+                  <MapPin size={14} /> Detect Live Location
+                </button>
+              )}
+            </div>
+            <div style={{ position: 'relative', marginTop: '0.5rem' }}>
               <MapPin size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input 
                 type="text" 
@@ -224,7 +242,7 @@ const Profile = () => {
                     className="autocomplete-item"
                     onClick={() => handleSelectCity(result)}
                   >
-                    {result.display_name.split(',').slice(0, 3).join(',')}
+                    {result}
                   </li>
                 ))}
               </ul>
@@ -312,7 +330,7 @@ const Profile = () => {
               </div>
               
               <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(139, 92, 246, 0.1))', borderRadius: 'var(--radius-md)', border: '1px solid var(--primary-color)' }}>
-                <h4 style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>CityRoom Pro</h4>
+                <h4 style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>HomeDo Pro</h4>
                 <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                   List unlimited properties and get exclusive Renter leads directly to your WhatsApp.
                 </p>

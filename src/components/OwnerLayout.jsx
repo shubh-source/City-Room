@@ -24,7 +24,7 @@ const OwnerLayout = () => {
         padding: '1.5rem'
       }}>
         <div style={{ marginBottom: '2rem' }}>
-          <img src="/logo.png" alt="CityRoom Logo" style={{ height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
+          <img src="/logo.png" alt="HomeDo Logo" style={{ height: '40px', objectFit: 'contain', borderRadius: '8px' }} />
           <span style={{ fontSize: '0.8rem', color: 'var(--secondary-color)', fontWeight: '600' }}>Owner Portal</span>
         </div>
 
@@ -55,7 +55,7 @@ const OwnerLayout = () => {
         </div>
 
         <button 
-          onClick={() => { localStorage.removeItem('cityroom_user'); localStorage.removeItem('cityroom_token'); window.location.href = '/'; }}
+          onClick={() => { localStorage.removeItem('homedo_user'); localStorage.removeItem('homedo_token'); window.location.href = '/'; }}
           style={{
             display: 'flex',
             alignItems: 'center',

@@ -64,7 +64,7 @@ const AddRoom = () => {
     e.preventDefault();
     
     // 1. Strict Validation Check
-    const userStr = localStorage.getItem('cityroom_user');
+    const userStr = localStorage.getItem('homedo_user');
     if (!userStr) return navigate('/login');
     const user = JSON.parse(userStr);
     
@@ -74,7 +74,7 @@ const AddRoom = () => {
     }
     
     if (!user.subscriptionEnd || new Date(user.subscriptionEnd) < new Date()) {
-      alert("⚠️ Subscription Expired: Please renew your CityRoom Pro subscription to list a room.");
+      alert("⚠️ Subscription Expired: Please renew your HomeDo Pro subscription to list a room.");
       return navigate('/owner/profile');
     }
 

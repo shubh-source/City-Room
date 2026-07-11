@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, IndianRupee, Star, Shield, ArrowLeft, Check, ShieldCheck } from 'lucide-react';
+import { MapPin, IndianRupee, Star, Shield, ArrowLeft, Check, ShieldCheck, Share2 } from 'lucide-react';
 import { api } from '../../lib/api';
 
 const RoomDetails = () => {
@@ -38,7 +38,7 @@ const RoomDetails = () => {
           })));
         } else {
           setReviewsList([
-            { id: 1, author: 'Priya Sharma (Verified)', rating: 5, date: 'October 2023', comment: 'Very clean room and the owner is very helpful. Secured via CityRoom escrow.' },
+            { id: 1, author: 'Priya Sharma (Verified)', rating: 5, date: 'October 2023', comment: 'Very clean room and the owner is very helpful. Secured via HomeDo escrow.' },
             { id: 2, author: 'Amit Kumar (Verified)', rating: 4, date: 'August 2023', comment: 'Good location, smooth booking experience.' }
           ]);
         }
@@ -78,17 +78,43 @@ const RoomDetails = () => {
     navigate('/renter/payments', { state: { room } });
   };
 
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: room.title,
+          text: `Check out this room on HomeDo: ${room.title}`,
+          url: url,
+        });
+      } catch (err) {
+        console.error('Share failed', err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    }
+  };
+
   if (loading) return <div style={{ padding: '4rem', textAlign: 'center' }}>Loading room details...</div>;
   if (!room) return <div style={{ padding: '4rem', textAlign: 'center' }}>Room not found!</div>;
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '4rem' }}>
-      <button 
-        onClick={() => navigate('/renter')} 
-        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}
-      >
-        <ArrowLeft size={16} /> Back to Search
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <button 
+          onClick={() => navigate('/renter')} 
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          <ArrowLeft size={16} /> Back to Search
+        </button>
+        <button 
+          onClick={handleShare}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-color)', color: 'var(--primary-color)', border: '1px solid var(--primary-color)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', fontSize: '0.9rem', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          <Share2 size={16} /> Share Room
+        </button>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
         {/* Left Column - Details */}

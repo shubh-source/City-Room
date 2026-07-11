@@ -1,8 +1,8 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = `http://${window.location.hostname}:5000/api`;
 
 export const api = {
   get: async (endpoint) => {
-    const token = localStorage.getItem('cityroom_token');
+    const token = localStorage.getItem('homedo_token');
     try {
       const res = await fetch(`${API_URL}${endpoint}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -16,7 +16,7 @@ export const api = {
   },
   
   post: async (endpoint, data) => {
-    const token = localStorage.getItem('cityroom_token');
+    const token = localStorage.getItem('homedo_token');
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -30,7 +30,7 @@ export const api = {
   },
   
   put: async (endpoint, data) => {
-    const token = localStorage.getItem('cityroom_token');
+    const token = localStorage.getItem('homedo_token');
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: 'PUT',
       headers: {

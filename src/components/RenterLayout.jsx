@@ -29,7 +29,7 @@ const RenterLayout = () => {
         zIndex: 10
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <img src="/logo.png" alt="CityRoom Logo" style={{ height: '32px', margin: 0, objectFit: 'contain', borderRadius: '8px' }} />
+          <img src="/logo.png" alt="HomeDo Logo" style={{ height: '32px', margin: 0, objectFit: 'contain', borderRadius: '8px' }} />
           
           <div className="desktop-only" style={{ gap: '1rem' }}>
             {navItems.map(item => {
@@ -102,7 +102,7 @@ const RenterLayout = () => {
             </div>
           </Link>
 
-          <button onClick={() => { localStorage.removeItem('cityroom_user'); localStorage.removeItem('cityroom_token'); window.location.href = '/'; }} style={{ color: 'var(--danger-color)', marginLeft: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} title="Logout">
+          <button onClick={() => { localStorage.removeItem('homedo_user'); localStorage.removeItem('homedo_token'); window.location.href = '/'; }} style={{ color: 'var(--danger-color)', marginLeft: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} title="Logout">
             <LogOut size={20} />
           </button>
         </div>

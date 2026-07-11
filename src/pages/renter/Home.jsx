@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, IndianRupee, Filter, Star, X, Heart, Map as MapIcon, Grid, AlertCircle } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { api } from '../../lib/api';
@@ -15,8 +15,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
+const ChangeView = ({ center }) => {
+  const map = useMap();
+  map.setView(center, map.getZoom());
+  return null;
+};
+
 const RenterHome = () => {
-  const { userLocation } = useContext(AppContext);
+  const { user, userLocation, userCoords } = useContext(AppContext);
   const currentCity = userLocation.split(',')[0].trim();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -25,6 +31,7 @@ const RenterHome = () => {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'map'
   const [mapTheme, setMapTheme] = useState('minimal'); // 'normal' or 'minimal'
+  const [mapCenter, setMapCenter] = useState([26.8467, 80.9462]); // Default Lucknow
   
   // Filter states
   const [maxRent, setMaxRent] = useState(15000);
@@ -33,10 +40,11 @@ const RenterHome = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [roomsData, shortlistsData] = await Promise.all([
-          api.get('/rooms'),
-          api.get('/shortlists')
-        ]);
+        const roomsData = await api.get('/rooms').catch(() => []);
+        let shortlistsData = [];
+        if (user) {
+          shortlistsData = await api.get('/shortlists').catch(() => []);
+        }
         setRooms(roomsData);
         setShortlists(shortlistsData.map(s => s.roomId));
       } catch (err) {
@@ -46,7 +54,28 @@ const RenterHome = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [user]);
+
+  useEffect(() => {
+    if (userCoords) {
+      setMapCenter(userCoords);
+      return; // Skip geocoding if we have exact coords
+    }
+    const fetchCoords = async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(currentCity)}&format=json&limit=1`);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setMapCenter([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+        }
+      } catch (err) {
+        console.error('Geocoding failed', err);
+      }
+    };
+    if (currentCity && currentCity !== 'Fetching Location...' && currentCity !== 'Select Location') {
+      fetchCoords();
+    }
+  }, [currentCity, userCoords]);
 
   const filteredRooms = rooms.filter(r => {
     // Location Filter
@@ -76,7 +105,9 @@ const RenterHome = () => {
   const activeFilterCount = (maxRent < 15000 ? 1 : 0) + (roomType !== 'All' ? 1 : 0);
 
   // Generate deterministic dummy coordinates for map based on room ID
-  const getDummyCoords = (roomStrId, baseLat = 26.8467, baseLng = 80.9462) => {
+  const getDummyCoords = (roomStrId) => {
+    const baseLat = mapCenter[0];
+    const baseLng = mapCenter[1];
     // Basic hash to generate an offset
     let hash = 0;
     for (let i = 0; i < roomStrId.length; i++) hash += roomStrId.charCodeAt(i);
@@ -124,9 +155,15 @@ const RenterHome = () => {
 
         {/* Filter Dropdown */}
         {showFilters && (
-          <div className="card animate-fade-in" style={{ position: 'absolute', top: '100%', right: 0, marginTop: '1rem', width: '320px', zIndex: 50 }}>
+          <div className="card animate-fade-in" style={{ 
+            position: 'absolute', top: '100%', right: 0, marginTop: '1rem', 
+            width: '320px', zIndex: 50, 
+            background: 'rgba(15, 23, 42, 0.95)', /* Solid dark background to fix contrast over map */
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+          }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontWeight: 'bold' }}>Filters</h3>
+              <h3 style={{ fontWeight: 'bold', color: 'white' }}>Filters</h3>
               <button onClick={() => setShowFilters(false)} style={{ color: 'var(--text-muted)' }}><X size={20} /></button>
             </div>
             
@@ -150,6 +187,7 @@ const RenterHome = () => {
               <select className="input-field" value={roomType} onChange={e => setRoomType(e.target.value)}>
                 <option value="All">All Types</option>
                 <option value="Single Room">Single Room</option>
+                <option value="Shared Room">Shared Room (PG)</option>
                 <option value="1 RK">1 RK</option>
                 <option value="1 BHK">1 BHK</option>
                 <option value="2 BHK">2 BHK</option>
@@ -191,7 +229,8 @@ const RenterHome = () => {
           >
             <MapIcon size={16} /> {mapTheme === 'normal' ? 'Switch to Minimal (Zomato Style)' : 'Switch to Normal Map'}
           </button>
-          <MapContainer center={[26.8467, 80.9462]} zoom={11} style={{ height: '100%', width: '100%' }}>
+          <MapContainer center={mapCenter} zoom={11} style={{ height: '100%', width: '100%' }}>
+            <ChangeView center={mapCenter} />
             <TileLayer
               key={mapTheme}
               url={mapTheme === 'normal' 
@@ -203,6 +242,17 @@ const RenterHome = () => {
                 : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               }
             />
+            
+            {/* User Location Marker */}
+            <Marker position={mapCenter}>
+              <Popup>
+                <div style={{fontWeight: 'bold', textAlign: 'center'}}>
+                  📍 Your Location<br/>
+                  <span style={{fontSize: '0.8rem', color: '#666'}}>{currentCity}</span>
+                </div>
+              </Popup>
+            </Marker>
+
             {filteredRooms.map(room => (
               <Marker key={room.id} position={getDummyCoords(room.id)}>
                 <Popup>

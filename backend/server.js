@@ -431,6 +431,6 @@ app.get('/api/rooms/:id/reviews', async (req, res) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-  console.log(`🚀 CityRoom Backend running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 HomeDo Backend running on port ${PORT}`);
 });

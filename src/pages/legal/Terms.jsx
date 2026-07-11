@@ -20,27 +20,27 @@ const Terms = () => {
 
           <section>
             <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>1. Acceptance of Terms & Regulatory Compliance</h2>
-            <p>By accessing and using CityRoom, you agree to be bound by these Terms of Service. CityRoom operates as an intermediary in compliance with the <strong>Information Technology Act, 2000</strong> and the rules framed thereunder. If you do not agree to these terms, please do not use our platform.</p>
+            <p>By accessing and using HomeDo, you agree to be bound by these Terms of Service. HomeDo operates as an intermediary in compliance with the <strong>Information Technology Act, 2000</strong> and the rules framed thereunder. If you do not agree to these terms, please do not use our platform.</p>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>2. Tenancy Laws & KYC Obligations</h2>
-            <p>Users must provide accurate information during registration. Both owners and renters are required to undergo KYC verification (e.g., Aadhaar/PAN) before finalizing any rental agreements. All rental agreements facilitated through CityRoom are subject to the <strong>Model Tenancy Act, 2021</strong> and applicable State Rent Control Acts. Providing false KYC information is a punishable offense.</p>
+            <p>Users must provide accurate information during registration. Both owners and renters are required to undergo KYC verification (e.g., Aadhaar/PAN) before finalizing any rental agreements. All rental agreements facilitated through HomeDo are subject to the <strong>Model Tenancy Act, 2021</strong> and applicable State Rent Control Acts. Providing false KYC information is a punishable offense.</p>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>3. Escrow Payment & Financial Regulations</h2>
-            <p>To prevent fraud, CityRoom utilizes a secure Escrow payment model in accordance with the <strong>Payment and Settlement Systems Act, 2007</strong> and RBI guidelines. Rent and advance payments made by the renter are held securely in a nodal/escrow account and are only released to the owner after the renter has successfully verified the property.</p>
+            <p>To prevent fraud, HomeDo utilizes a secure Escrow payment model in accordance with the <strong>Payment and Settlement Systems Act, 2007</strong> and RBI guidelines. Rent and advance payments made by the renter are held securely in a nodal/escrow account and are only released to the owner after the renter has successfully verified the property.</p>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>4. Grievance Redressal</h2>
-            <p>In compliance with the IT Rules, CityRoom has appointed a Grievance Officer to address any discrepancies or grievances related to the platform. Any disputes arising from the rental agreement itself must be resolved through the competent Rent Court or Rent Tribunal as per the applicable state laws.</p>
+            <p>In compliance with the IT Rules, HomeDo has appointed a Grievance Officer to address any discrepancies or grievances related to the platform. Any disputes arising from the rental agreement itself must be resolved through the competent Rent Court or Rent Tribunal as per the applicable state laws.</p>
           </section>
 
           <section>
             <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>5. Limitation of Liability</h2>
-            <p>CityRoom acts solely as a technology facilitator (intermediary) between property owners and renters. We do not guarantee the condition of any property listed on the platform. Any disputes arising from the rental agreement are strictly between the owner and the renter.</p>
+            <p>HomeDo acts solely as a technology facilitator (intermediary) between property owners and renters. We do not guarantee the condition of any property listed on the platform. Any disputes arising from the rental agreement are strictly between the owner and the renter.</p>
           </section>
         </div>
       </div>

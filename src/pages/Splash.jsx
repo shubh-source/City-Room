@@ -6,7 +6,7 @@ const Splash = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('cityroom_user');
+    const savedUser = localStorage.getItem('homedo_user');
     if (savedUser) {
       try {
         const user = JSON.parse(savedUser);
@@ -28,7 +28,7 @@ const Splash = () => {
           display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem',
           boxShadow: '0 8px 32px var(--primary-glow)'
         }}>
-          <img src="/logo.png" alt="CityRoom Logo" style={{ width: '50px', height: '50px', objectFit: 'contain', borderRadius: '12px' }} />
+          <img src="/logo.png" alt="HomeDo Logo" style={{ width: '50px', height: '50px', objectFit: 'contain', borderRadius: '12px' }} />
         </div>
         <h1 className="font-bold mb-2" style={{ 
           fontSize: '3rem', 
@@ -36,12 +36,12 @@ const Splash = () => {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           letterSpacing: '-1px'
-        }}>CityRoom</h1>
+        }}>HomeDo</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '300px', margin: '0 auto' }}>Find your perfect room in the city, or list yours today.</p>
       </div>
 
       <div className="card w-full max-w-md" style={{ maxWidth: '400px', width: '100%', position: 'relative', zIndex: 1 }}>
-        <h2 className="font-bold mb-4" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>How do you want to use CityRoom?</h2>
+        <h2 className="font-bold mb-4" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>How do you want to use HomeDo?</h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <button 
@@ -80,7 +80,7 @@ const Splash = () => {
           <button onClick={() => navigate('/privacy')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: '0 0.5rem', textDecoration: 'underline' }}>Privacy Policy</button> | 
           <button onClick={() => navigate('/support')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: '0 0.5rem', textDecoration: 'underline' }}>Help & Support</button>
         </div>
-        <p style={{ marginTop: '0.5rem' }}>&copy; 2026 CityRoom. All rights reserved.</p>
+        <p style={{ marginTop: '0.5rem' }}>&copy; 2026 HomeDo. All rights reserved.</p>
       </footer>
     </div>
   );
