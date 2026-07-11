@@ -29,6 +29,11 @@ const Profile = () => {
     location: userLocation,
     coords: null,
     upiId: '',
+    bankAccount: '',
+    bankIfsc: '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvv: ''
   });
 
   useEffect(() => {
@@ -39,6 +44,11 @@ const Profile = () => {
         phone: user.phone || '',
         location: userLocation,
         upiId: user.upiId || 'not-set@upi',
+        bankAccount: user.bankAccount || '',
+        bankIfsc: user.bankIfsc || '',
+        cardNumber: user.cardNumber || '',
+        cardExpiry: user.cardExpiry || '',
+        cardCvv: user.cardCvv || '',
         legalName: user.legalName || '',
         legalAddress: user.legalAddress || '',
         dob: user.dob || ''
@@ -257,26 +267,90 @@ const Profile = () => {
           <>
             <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
             <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-              {isOwner ? 'Payout Details' : 'Refund Bank Details'}
+              {isOwner ? 'Payout Details' : 'Saved Payment Methods'}
             </h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
               {isOwner 
-                ? 'Enter your UPI ID or Bank Details to receive payments from Escrow when renters move in.'
-                : 'Enter your UPI ID or Bank Details to receive your security deposit refund securely.'}
+                ? 'Enter your UPI or Bank Details to receive payments from Escrow when renters move in.'
+                : 'Save your UPI, Bank, or Card details to easily pay for rent and receive your security deposit refunds.'}
             </p>
-            <div className="input-group">
-              <label className="input-label">UPI ID / Account Number</label>
-              <div style={{ position: 'relative' }}>
-                <Wallet size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input 
-                  type="text" 
-                  className="input-field" 
-                  style={{ paddingLeft: '2.5rem' }}
-                  value={profileData.upiId}
-                  placeholder="e.g., yourname@upi"
-                  onChange={e => setProfileData({...profileData, upiId: e.target.value})}
-                  disabled={!isEditing}
-                />
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* UPI Section */}
+              <div className="input-group">
+                <label className="input-label">UPI ID</label>
+                <div style={{ position: 'relative' }}>
+                  <Wallet size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    style={{ paddingLeft: '2.5rem' }}
+                    value={profileData.upiId}
+                    placeholder="e.g., yourname@upi"
+                    onChange={e => setProfileData({...profileData, upiId: e.target.value})}
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+
+              {/* Bank Account Section */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="input-group">
+                  <label className="input-label">Bank Account Number</label>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    value={profileData.bankAccount}
+                    placeholder="Enter Account Number"
+                    onChange={e => setProfileData({...profileData, bankAccount: e.target.value})}
+                    disabled={!isEditing}
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">IFSC Code</label>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    value={profileData.bankIfsc}
+                    placeholder="e.g., SBIN0001234"
+                    onChange={e => setProfileData({...profileData, bankIfsc: e.target.value})}
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+
+              {/* Card Section */}
+              <div className="input-group">
+                <label className="input-label">Credit / Debit Card</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    style={{ flex: 2 }}
+                    value={profileData.cardNumber}
+                    placeholder="Card Number"
+                    onChange={e => setProfileData({...profileData, cardNumber: e.target.value})}
+                    disabled={!isEditing}
+                  />
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    style={{ flex: 1 }}
+                    value={profileData.cardExpiry}
+                    placeholder="MM/YY"
+                    onChange={e => setProfileData({...profileData, cardExpiry: e.target.value})}
+                    disabled={!isEditing}
+                  />
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    style={{ flex: 1 }}
+                    value={profileData.cardCvv}
+                    placeholder="CVV"
+                    onChange={e => setProfileData({...profileData, cardCvv: e.target.value})}
+                    disabled={!isEditing}
+                  />
+                </div>
               </div>
             </div>
           </>
