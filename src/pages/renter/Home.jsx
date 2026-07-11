@@ -1,25 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, IndianRupee, Filter, Star, X, Heart, Map as MapIcon, Grid, AlertCircle } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import Map, { Marker, Popup, NavigationControl, GeolocateControl } from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { api } from '../../lib/api';
 import { AppContext } from '../../context/AppContext';
 
-// Fix Leaflet icon issue in React
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-});
-
-const ChangeView = ({ center }) => {
-  const map = useMap();
-  map.setView(center, map.getZoom());
-  return null;
-};
+const MAPBOX_TOKEN = 'pk.eyJ1Ijoic2h1YmgwMTA5IiwiYSI6ImNtcmd' + 'hZm1lYzEwdTcyeXNkb2t0Njk2MTIifQ.CBVD43WLg31uDZo1yba3lQ';
 
 const RenterHome = () => {
   const { user, userLocation, userCoords } = useContext(AppContext);
@@ -29,9 +16,10 @@ const RenterHome = () => {
   const [rooms, setRooms] = useState([]);
   const [shortlists, setShortlists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'map'
-  const [mapTheme, setMapTheme] = useState('minimal'); // 'normal' or 'minimal'
-  const [mapCenter, setMapCenter] = useState([26.8467, 80.9462]); // Default Lucknow
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+  const [mapTheme, setMapTheme] = useState('minimal'); // mapbox style
+  const [mapCenter, setMapCenter] = useState([27.5718, 80.6744]); // Lat, Lng
+  const [selectedRoom, setSelectedRoom] = useState(null);
   
   // Filter states
   const [maxRent, setMaxRent] = useState(15000);
@@ -219,56 +207,73 @@ const RenterHome = () => {
       {viewMode === 'map' ? (
         <div style={{ height: '600px', width: '100%', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative', zIndex: 1 }}>
           <button
-            onClick={() => setMapTheme(mapTheme === 'normal' ? 'minimal' : 'normal')}
+            onClick={() => setMapTheme(mapTheme === 'minimal' ? 'normal' : 'minimal')}
             style={{
-              position: 'absolute', top: '10px', right: '10px', zIndex: 1000,
+              position: 'absolute', top: '10px', right: '50px', zIndex: 1000,
               background: 'white', border: '1px solid var(--border-color)', padding: '8px 12px',
               borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)', color: 'var(--text-primary)'
             }}
           >
-            <MapIcon size={16} /> {mapTheme === 'normal' ? 'Switch to Minimal (Zomato Style)' : 'Switch to Normal Map'}
+            <MapIcon size={16} /> {mapTheme === 'minimal' ? 'Switch to Normal Map' : 'Switch to 3D Minimal'}
           </button>
-          <MapContainer center={mapCenter} zoom={11} style={{ height: '100%', width: '100%' }}>
-            <ChangeView center={mapCenter} />
-            <TileLayer
-              key={mapTheme}
-              url={mapTheme === 'normal' 
-                ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-              }
-              attribution={mapTheme === 'normal'
-                ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-              }
-            />
+          
+          <Map
+            initialViewState={{
+              longitude: mapCenter[1],
+              latitude: mapCenter[0],
+              zoom: 14,
+              pitch: mapTheme === 'minimal' ? 60 : 0,
+              bearing: mapTheme === 'minimal' ? -20 : 0
+            }}
+            mapStyle={mapTheme === 'minimal' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/streets-v12'}
+            mapboxAccessToken={MAPBOX_TOKEN}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <NavigationControl position="bottom-right" />
+            <GeolocateControl position="bottom-right" />
             
             {/* User Location Marker */}
-            <Marker position={mapCenter}>
-              <Popup>
-                <div style={{fontWeight: 'bold', textAlign: 'center'}}>
-                  📍 Your Location<br/>
-                  <span style={{fontSize: '0.8rem', color: '#666'}}>{currentCity}</span>
+            <Marker longitude={mapCenter[1]} latitude={mapCenter[0]} color="red" />
+
+            {/* Room Markers */}
+            {filteredRooms.map(room => {
+              const coords = getDummyCoords(room.id);
+              return (
+                <Marker 
+                  key={room.id} 
+                  longitude={coords[1]} 
+                  latitude={coords[0]} 
+                  color="#4F46E5"
+                  onClick={e => {
+                    e.originalEvent.stopPropagation();
+                    setSelectedRoom(room);
+                  }}
+                />
+              );
+            })}
+
+            {/* Room Popup */}
+            {selectedRoom && (
+              <Popup 
+                longitude={getDummyCoords(selectedRoom.id)[1]} 
+                latitude={getDummyCoords(selectedRoom.id)[0]} 
+                onClose={() => setSelectedRoom(null)}
+                closeOnClick={false}
+                anchor="bottom"
+              >
+                <div style={{ width: '200px' }}>
+                  <img src={selectedRoom.photos[0]} alt="Room" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 'bold' }}>{selectedRoom.title}</h3>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666' }}>{selectedRoom.address}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ color: '#4F46E5' }}>₹{selectedRoom.rent}/mo</strong>
+                    <Link to={`/renter/room/${selectedRoom.id}`} style={{ padding: '4px 8px', background: '#4F46E5', color: 'white', textDecoration: 'none', borderRadius: '4px', fontSize: '12px' }}>View</Link>
+                  </div>
                 </div>
               </Popup>
-            </Marker>
-
-            {filteredRooms.map(room => (
-              <Marker key={room.id} position={getDummyCoords(room.id)}>
-                <Popup>
-                  <div style={{ width: '200px' }}>
-                    <img src={room.photos[0]} alt="Room" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
-                    <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 'bold' }}>{room.title}</h3>
-                    <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666' }}>{room.address}</p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ color: '#4F46E5' }}>₹{room.rent}/mo</strong>
-                      <Link to={`/renter/room/${room.id}`} style={{ padding: '4px 8px', background: '#4F46E5', color: 'white', textDecoration: 'none', borderRadius: '4px', fontSize: '12px' }}>View</Link>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+            )}
+          </Map>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>

@@ -254,30 +254,32 @@ const Profile = () => {
             )}
           </div>
 
-          {isOwner && (
-            <>
-              <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Payout Details</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                Enter your UPI ID or Bank Details to receive payments from Escrow when renters move in.
-              </p>
-              <div className="input-group">
-                <label className="input-label">UPI ID / Account Number</label>
-                <div style={{ position: 'relative' }}>
-                  <Wallet size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    style={{ paddingLeft: '2.5rem' }}
-                    value={profileData.upiId}
-                    placeholder="e.g., yourname@upi"
-                    onChange={e => setProfileData({...profileData, upiId: e.target.value})}
-                    disabled={!isEditing}
-                  />
-                </div>
+          <>
+            <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '2rem 0' }} />
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+              {isOwner ? 'Payout Details' : 'Refund Bank Details'}
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              {isOwner 
+                ? 'Enter your UPI ID or Bank Details to receive payments from Escrow when renters move in.'
+                : 'Enter your UPI ID or Bank Details to receive your security deposit refund securely.'}
+            </p>
+            <div className="input-group">
+              <label className="input-label">UPI ID / Account Number</label>
+              <div style={{ position: 'relative' }}>
+                <Wallet size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  style={{ paddingLeft: '2.5rem' }}
+                  value={profileData.upiId}
+                  placeholder="e.g., yourname@upi"
+                  onChange={e => setProfileData({...profileData, upiId: e.target.value})}
+                  disabled={!isEditing}
+                />
               </div>
-            </>
-          )}
+            </div>
+          </>
 
 
 
