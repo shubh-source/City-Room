@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, IndianRupee, Filter, Star, X, Heart, Map as MapIcon, Grid, AlertCircle } from 'lucide-react';
-import Map, { Marker, Popup, NavigationControl, GeolocateControl } from 'react-map-gl';
+import Map, { Marker, Popup, NavigationControl, GeolocateControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { api } from '../../lib/api';
 import { AppContext } from '../../context/AppContext';
