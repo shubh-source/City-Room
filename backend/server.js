@@ -38,6 +38,144 @@ const authenticateToken = (req, res, next) => {
 
 // --- Auth Routes ---
 const admin = require('./firebaseAdmin');
+const { sendEmailOTP } = require('./utils/email');
+
+app.post('/api/auth/send-email-otp', async (req, res) => {
+  const { identifier, isSignup, emailForSignup } = req.body;
+  let targetEmail = identifier;
+
+  if (isSignup) {
+    targetEmail = emailForSignup;
+  } else {
+    if (/^\d+$/.test(identifier) || /^\+\d+$/.test(identifier)) {
+      const phoneLocal = identifier.replace('+91', '');
+      const user = await prisma.user.findFirst({
+        where: { OR: [{ phone: identifier }, { phone: phoneLocal }, { phone: '+91' + phoneLocal }] }
+      });
+      if (!user) return res.status(404).json({ error: 'User not found. Please sign up.' });
+      if (!user.email) return res.status(400).json({ error: 'No email associated with this account.' });
+      targetEmail = user.email;
+    } else {
+      const user = await prisma.user.findUnique({ where: { email: identifier } });
+      if (!user) return res.status(404).json({ error: 'Email not registered. Please sign up.' });
+    }
+  }
+
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+  try {
+    await prisma.otp.deleteMany({ where: { identifier: targetEmail } });
+    await prisma.otp.create({
+      data: {
+        identifier: targetEmail,
+        code: otpCode,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+      }
+    });
+
+    const emailSent = await sendEmailOTP(targetEmail, otpCode);
+    if (!emailSent) {
+      return res.status(500).json({ error: 'Failed to send email. Check SMTP config.' });
+    }
+
+    res.json({ success: true, message: 'OTP sent to ' + targetEmail });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/auth/verify-email-otp', async (req, res) => {
+  const { identifier, code, isSignup, signupData } = req.body;
+  let targetEmail = identifier;
+  let userPhone = null;
+
+  if (isSignup) {
+    targetEmail = signupData.email;
+    userPhone = signupData.phone;
+  } else {
+    if (/^\d+$/.test(identifier) || /^\+\d+$/.test(identifier)) {
+      const phoneLocal = identifier.replace('+91', '');
+      const user = await prisma.user.findFirst({
+        where: { OR: [{ phone: identifier }, { phone: phoneLocal }, { phone: '+91' + phoneLocal }] }
+      });
+      if (!user) return res.status(404).json({ error: 'User not found.' });
+      targetEmail = user.email;
+      userPhone = user.phone;
+    } else {
+      const user = await prisma.user.findUnique({ where: { email: identifier } });
+      if (!user) return res.status(404).json({ error: 'User not found.' });
+      userPhone = user.phone;
+    }
+  }
+
+  try {
+    const otpRecord = await prisma.otp.findFirst({
+      where: { identifier: targetEmail, code: code, expiresAt: { gt: new Date() } }
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ error: 'Invalid or expired OTP' });
+    }
+
+    await prisma.otp.delete({ where: { id: otpRecord.id } });
+
+    let uid;
+    let dbUser;
+    const firebasePhone = userPhone.startsWith('+') ? userPhone : '+91' + userPhone;
+
+    if (isSignup) {
+      dbUser = await prisma.user.findFirst({
+        where: { OR: [{ email: signupData.email }, { phone: signupData.phone }] }
+      });
+      if (dbUser) return res.status(400).json({ error: 'User already exists' });
+      
+      try {
+        const fbUser = await admin.auth().getUserByPhoneNumber(firebasePhone);
+        uid = fbUser.uid;
+      } catch (e) {
+        if (e.code === 'auth/user-not-found') {
+          const newUser = await admin.auth().createUser({
+            phoneNumber: firebasePhone,
+            email: signupData.email,
+            displayName: signupData.name
+          });
+          uid = newUser.uid;
+        } else { throw e; }
+      }
+
+      dbUser = await prisma.user.create({
+        data: { 
+          name: signupData.name, 
+          email: signupData.email, 
+          phone: signupData.phone, 
+          role: signupData.role || 'renter', 
+          isVerified: true 
+        }
+      });
+    } else {
+      dbUser = await prisma.user.findUnique({ where: { email: targetEmail } });
+      try {
+        const fbUser = await admin.auth().getUserByPhoneNumber(firebasePhone);
+        uid = fbUser.uid;
+      } catch (e) {
+         if (e.code === 'auth/user-not-found') {
+           const newUser = await admin.auth().createUser({ phoneNumber: firebasePhone, email: targetEmail });
+           uid = newUser.uid;
+         } else { throw e; }
+      }
+    }
+
+    const customToken = await admin.auth().createCustomToken(uid);
+    const token = jwt.sign({ id: dbUser.id, role: dbUser.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    
+    res.json({ token, customToken, user: dbUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
 
 // 1. Signup: Verify Firebase Token & Create User
 app.post('/api/auth/signup', async (req, res) => {

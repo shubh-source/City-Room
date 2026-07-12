@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { User, Mail, Smartphone, CheckCircle, ArrowLeft } from 'lucide-react';
 import { auth } from '../../lib/firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { RecaptchaVerifier, signInWithPhoneNumber, signInWithCustomToken } from 'firebase/auth';
 import { AppContext } from '../../context/AppContext';
 
 const Signup = () => {
@@ -45,6 +45,14 @@ const Signup = () => {
       const appVerifier = window.recaptchaVerifier;
       const confirmation = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       setConfirmationResult(confirmation);
+      
+      // 1.1 Also send OTP to Email via our backend (fire and forget)
+      api.post('/auth/send-email-otp', { 
+        identifier: formData.email, 
+        isSignup: true, 
+        emailForSignup: formData.email 
+      }).catch(err => console.error("Email OTP failed to send", err));
+
       setStep(2); // Move to OTP step
     } catch (err) {
       console.error(err);
@@ -62,7 +70,7 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      // 2. Verify OTP with Firebase
+      // 2. Try verifying OTP with Firebase first
       const result = await confirmationResult.confirm(otp);
       const idToken = await result.user.getIdToken();
 
@@ -73,14 +81,33 @@ const Signup = () => {
       localStorage.setItem('homedo_user', JSON.stringify(data.user));
       setUser(data.user);
       
-      if (data.user.role === 'owner') {
-        navigate('/owner');
-      } else {
-        navigate('/renter');
-      }
+      if (data.user.role === 'owner') navigate('/owner');
+      else navigate('/renter');
+      
     } catch (err) {
-      console.error(err);
-      alert('Invalid OTP or verification failed');
+      // If Firebase fails (meaning it's not the SMS OTP), let's try our backend Email OTP
+      try {
+        const emailVerifyData = await api.post('/auth/verify-email-otp', {
+          identifier: formData.email,
+          code: otp,
+          isSignup: true,
+          signupData: { ...formData, role }
+        });
+        
+        // Log into Firebase with the generated Custom Token
+        await signInWithCustomToken(auth, emailVerifyData.customToken);
+        
+        localStorage.setItem('homedo_token', emailVerifyData.token);
+        localStorage.setItem('homedo_user', JSON.stringify(emailVerifyData.user));
+        setUser(emailVerifyData.user);
+        
+        if (emailVerifyData.user.role === 'owner') navigate('/owner');
+        else navigate('/renter');
+        
+      } catch (emailErr) {
+        console.error(emailErr);
+        alert('Invalid OTP. Please check your SMS or Email for the correct code.');
+      }
     } finally {
       setLoading(false);
     }

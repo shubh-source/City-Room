@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { User, CheckCircle, ArrowLeft } from 'lucide-react';
 import { auth } from '../../lib/firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { RecaptchaVerifier, signInWithPhoneNumber, signInWithCustomToken } from 'firebase/auth';
 import { AppContext } from '../../context/AppContext';
 
 const Login = () => {
@@ -35,19 +35,35 @@ const Login = () => {
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (identifier.length < 10) return;
+    if (!identifier) return;
+    
+    const isEmail = identifier.includes('@');
+    if (!isEmail && identifier.replace(/\D/g, '').length < 10) return alert('Enter a valid email or 10-digit phone number');
+    
     setLoading(true);
 
     try {
-      // 1. Send OTP via Firebase
-      const phoneNumber = identifier.includes('+') ? identifier : '+91' + identifier;
-      const appVerifier = window.recaptchaVerifier;
-      const confirmation = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-      setConfirmationResult(confirmation);
-      setOtpSent(true);
+      if (isEmail) {
+        // Send OTP to email only
+        await api.post('/auth/send-email-otp', { identifier: identifier.trim(), isSignup: false });
+        setOtpSent(true);
+      } else {
+        // Send OTP via Firebase (Phone)
+        const phoneOnly = identifier.replace(/\D/g, '');
+        const phoneNumber = identifier.includes('+') ? identifier : '+91' + phoneOnly;
+        const appVerifier = window.recaptchaVerifier;
+        const confirmation = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+        setConfirmationResult(confirmation);
+        
+        // Parallel: Send fallback OTP to their registered email via backend
+        api.post('/auth/send-email-otp', { identifier: phoneOnly, isSignup: false })
+           .catch(err => console.log('Email fallback skipped or failed', err));
+           
+        setOtpSent(true);
+      }
     } catch (err) {
       console.error(err);
-      alert(`Firebase Error: ${err.message}`);
+      alert(err.response?.data?.error || `Error: ${err.message}`);
       if (window.recaptchaVerifier) window.recaptchaVerifier.render().then(widgetId => window.grecaptcha.reset(widgetId));
     } finally {
       setLoading(false);
@@ -59,26 +75,48 @@ const Login = () => {
     if (otp.length < 6) return;
     setLoading(true);
 
-    try {
-      // 2. Verify OTP with Firebase
-      const result = await confirmationResult.confirm(otp);
-      const idToken = await result.user.getIdToken();
+    const isEmail = identifier.includes('@');
 
-      // 3. Send token to backend to login
-      const data = await api.post('/auth/login', { idToken });
-      
-      localStorage.setItem('homedo_token', data.token);
-      localStorage.setItem('homedo_user', JSON.stringify(data.user));
-      setUser(data.user);
-      
-      if (data.user.role === 'owner') {
-        navigate('/owner');
+    try {
+      let finalToken, finalUser;
+
+      if (isEmail) {
+        // Verify Email OTP via Backend
+        const emailVerifyData = await api.post('/auth/verify-email-otp', {
+          identifier: identifier.trim(), code: otp, isSignup: false
+        });
+        await signInWithCustomToken(auth, emailVerifyData.customToken);
+        finalToken = emailVerifyData.token;
+        finalUser = emailVerifyData.user;
       } else {
-        navigate('/renter');
+        // Verify Phone OTP via Firebase
+        try {
+          const result = await confirmationResult.confirm(otp);
+          const idToken = await result.user.getIdToken();
+          const data = await api.post('/auth/login', { idToken });
+          finalToken = data.token;
+          finalUser = data.user;
+        } catch (fbErr) {
+          // If Firebase SMS OTP fails, fallback to backend Email OTP
+          const emailVerifyData = await api.post('/auth/verify-email-otp', {
+            identifier: identifier.replace(/\D/g, ''), code: otp, isSignup: false
+          });
+          await signInWithCustomToken(auth, emailVerifyData.customToken);
+          finalToken = emailVerifyData.token;
+          finalUser = emailVerifyData.user;
+        }
       }
+      
+      localStorage.setItem('homedo_token', finalToken);
+      localStorage.setItem('homedo_user', JSON.stringify(finalUser));
+      setUser(finalUser);
+      
+      if (finalUser.role === 'owner') navigate('/owner');
+      else navigate('/renter');
+      
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Invalid OTP or user not found');
+      alert(err.response?.data?.error || 'Invalid OTP or user not found');
     } finally {
       setLoading(false);
     }
@@ -99,13 +137,13 @@ const Login = () => {
           {role === 'owner' ? 'Owner Login' : 'Renter Login'}
         </h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-          {otpSent ? 'Enter the 6-digit code sent to your phone' : 'Enter your 10-digit phone number to continue'}
+          {otpSent ? 'Enter the 6-digit code sent to you' : 'Enter your email or phone number to continue'}
         </p>
 
         {!otpSent ? (
           <form onSubmit={handleSendOtp}>
             <div className="input-group">
-              <label className="input-label">Phone Number</label>
+              <label className="input-label">Email or Phone Number</label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
                   <User size={18} />
@@ -114,20 +152,20 @@ const Login = () => {
                   type="text" 
                   className="input-field" 
                   style={{ paddingLeft: '3rem' }}
-                  placeholder="10-digit number"
+                  placeholder="you@example.com or 10-digit number"
                   value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   autoFocus
                   required
                 />
               </div>
             </div>
             
-            <button 
+              <button 
               type="submit" 
               className="btn btn-primary w-full mt-4" 
               style={{ width: '100%', padding: '0.875rem' }}
-              disabled={identifier.length < 10 || loading}
+              disabled={identifier.length < 5 || loading}
             >
               {loading ? 'Sending OTP...' : 'Send OTP'}
             </button>
