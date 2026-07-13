@@ -74,24 +74,6 @@ const Splash = () => {
         </div>
       </div>
 
-      {/* Founder Pitch Video Section */}
-      <div className="card w-full max-w-md mt-6" style={{ maxWidth: '400px', width: '100%', position: 'relative', zIndex: 1, padding: '1.5rem', textAlign: 'center' }}>
-        <h3 className="font-bold mb-3" style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>Watch Our Story 🚀</h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>Listen to the founder pitch HomeDo.</p>
-        
-        <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-          <iframe 
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-            src="https://www.youtube.com/embed/vxJh2FxU1Qw?si=7nz1OqUzTyINYO_f" 
-            title="HomeDo Founder Pitch" 
-            frameBorder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-            referrerPolicy="strict-origin-when-cross-origin" 
-            allowFullScreen
-          ></iframe>
-        </div>
-      </div>
-
       <footer style={{ marginTop: 'auto', paddingTop: '3rem', width: '100%', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <div>
           <button onClick={() => navigate('/terms')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: '0 0.5rem', textDecoration: 'underline' }}>Terms of Service</button> | 
