@@ -18,6 +18,15 @@ const Signup = () => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   useEffect(() => {
     if (!window.recaptchaVerifier) {
@@ -54,6 +63,7 @@ const Signup = () => {
       }).catch(err => console.error("Email OTP failed to send", err));
 
       setStep(2); // Move to OTP step
+      setResendTimer(30);
     } catch (err) {
       console.error(err);
       alert(`Firebase Error: ${err.message}`);
@@ -221,13 +231,21 @@ const Signup = () => {
               <CheckCircle size={20} />
               {loading ? 'Verifying...' : 'Verify & Create Account'}
             </button>
-            <div className="text-center mt-4">
+            <div className="text-center mt-4 flex justify-between" style={{ display: 'flex', justifyContent: 'space-between' }}>
               <button 
                 type="button"
                 onClick={() => setStep(1)}
-                style={{ color: 'var(--primary-color)', fontSize: '0.875rem', fontWeight: '500' }}
+                style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: '500' }}
               >
                 Change Details
+              </button>
+              <button 
+                type="button"
+                onClick={handleSignup}
+                disabled={resendTimer > 0}
+                style={{ color: resendTimer > 0 ? 'var(--text-muted)' : 'var(--primary-color)', fontSize: '0.875rem', fontWeight: '500' }}
+              >
+                {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
               </button>
             </div>
           </form>

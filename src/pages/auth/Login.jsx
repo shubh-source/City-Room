@@ -18,6 +18,15 @@ const Login = () => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   useEffect(() => {
     if (!window.recaptchaVerifier) {
@@ -47,6 +56,7 @@ const Login = () => {
         // Send OTP to email only
         await api.post('/auth/send-email-otp', { identifier: identifier.trim(), isSignup: false });
         setOtpSent(true);
+        setResendTimer(30);
       } else {
         // Send OTP via Firebase (Phone)
         const phoneOnly = identifier.replace(/\D/g, '');
@@ -60,6 +70,7 @@ const Login = () => {
            .catch(err => console.log('Email fallback skipped or failed', err));
            
         setOtpSent(true);
+        setResendTimer(30);
       }
     } catch (err) {
       console.error(err);
@@ -202,13 +213,21 @@ const Login = () => {
               {loading ? 'Verifying...' : 'Verify & Login'}
             </button>
 
-            <div className="text-center mt-4">
+            <div className="text-center mt-4 flex justify-between" style={{ display: 'flex', justifyContent: 'space-between' }}>
               <button 
                 type="button"
                 onClick={() => { setOtpSent(false); setOtp(''); }}
-                style={{ color: 'var(--primary-color)', fontSize: '0.875rem', fontWeight: '500' }}
+                style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: '500' }}
               >
-                Change Phone Number
+                Change Details
+              </button>
+              <button 
+                type="button"
+                onClick={handleSendOtp}
+                disabled={resendTimer > 0}
+                style={{ color: resendTimer > 0 ? 'var(--text-muted)' : 'var(--primary-color)', fontSize: '0.875rem', fontWeight: '500' }}
+              >
+                {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
               </button>
             </div>
           </form>
