@@ -56,7 +56,7 @@ const Login = () => {
         setConfirmationResult(confirmation);
         
         // Parallel: Send fallback OTP to their registered email via backend
-        api.post('/auth/send-email-otp', { identifier: phoneOnly, isSignup: false })
+        api.post('/auth/send-email-otp', { identifier: identifier.trim(), isSignup: false })
            .catch(err => console.log('Email fallback skipped or failed', err));
            
         setOtpSent(true);
@@ -83,7 +83,7 @@ const Login = () => {
       if (isEmail) {
         // Verify Email OTP via Backend
         const emailVerifyData = await api.post('/auth/verify-email-otp', {
-          identifier: identifier.trim(), code: otp, isSignup: false
+          identifier: identifier.trim(), code: otp.trim(), isSignup: false
         });
         await signInWithCustomToken(auth, emailVerifyData.customToken);
         finalToken = emailVerifyData.token;
@@ -99,7 +99,7 @@ const Login = () => {
         } catch (fbErr) {
           // If Firebase SMS OTP fails, fallback to backend Email OTP
           const emailVerifyData = await api.post('/auth/verify-email-otp', {
-            identifier: identifier.replace(/\D/g, ''), code: otp, isSignup: false
+            identifier: identifier.trim(), code: otp.trim(), isSignup: false
           });
           await signInWithCustomToken(auth, emailVerifyData.customToken);
           finalToken = emailVerifyData.token;

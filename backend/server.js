@@ -111,7 +111,7 @@ app.post('/api/auth/verify-email-otp', async (req, res) => {
 
   try {
     const otpRecord = await prisma.otp.findFirst({
-      where: { identifier: targetEmail, code: code, expiresAt: { gt: new Date() } }
+      where: { identifier: targetEmail, code: code.trim(), expiresAt: { gt: new Date() } }
     });
 
     if (!otpRecord) {

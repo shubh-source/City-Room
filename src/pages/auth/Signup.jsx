@@ -88,8 +88,8 @@ const Signup = () => {
       // If Firebase fails (meaning it's not the SMS OTP), let's try our backend Email OTP
       try {
         const emailVerifyData = await api.post('/auth/verify-email-otp', {
-          identifier: formData.email,
-          code: otp,
+          identifier: formData.email.trim(),
+          code: otp.trim(),
           isSignup: true,
           signupData: { ...formData, role }
         });
@@ -106,7 +106,7 @@ const Signup = () => {
         
       } catch (emailErr) {
         console.error(emailErr);
-        alert('Invalid OTP. Please check your SMS or Email for the correct code.');
+        alert(emailErr.response?.data?.error || 'Invalid OTP. Please check your SMS or Email for the correct code.');
       }
     } finally {
       setLoading(false);
